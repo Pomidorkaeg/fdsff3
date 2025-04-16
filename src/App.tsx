@@ -53,7 +53,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <BrowserRouter basename="/fd">
+        <BrowserRouter>
           <Suspense fallback={<PageLoading />}>
             <Routes>
               {/* Public routes */}
