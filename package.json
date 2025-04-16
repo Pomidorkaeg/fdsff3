@@ -9,8 +9,8 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d dist -b gh-pages",
-    "postbuild": "cp dist/index.html dist/404.html"
+    "deploy": "gh-pages -d dist",
+    "postbuild": "node -e \"const fs=require('fs');fs.copyFileSync('dist/index.html','dist/404.html')\""
   },
   "homepage": "https://pomidorkaeg.github.io/fd/",
   "dependencies": {
