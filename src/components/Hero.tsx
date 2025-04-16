@@ -11,7 +11,7 @@ const Hero = () => {
       <div
         className="absolute inset-0 z-0"
         style={{
-          backgroundImage: `url(${getAssetUrl('lovable-uploads/e711e51e-481c-438c-987e-2aa5f999290a.png')})`,
+          backgroundImage: `url(https://github.com/Pomidorkaeg/photo/blob/main/382be63e-ead7-422c-b229-31831c415198.png?raw=true)`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed'

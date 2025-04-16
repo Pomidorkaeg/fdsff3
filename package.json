@@ -12,7 +12,7 @@
     "deploy": "gh-pages -d dist",
     "postbuild": "node -e \"const fs=require('fs');fs.copyFileSync('dist/index.html','dist/404.html')\""
   },
-  "homepage": "https://pomidorkaeg.github.io/fd/",
+  "homepage": "https://pomidorkaeg.github.io/fds/",
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",

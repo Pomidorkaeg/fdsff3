@@ -10,7 +10,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base: '/fd/',
+  base: '/fds/',
   build: {
     outDir: "dist",
     assetsDir: "assets",

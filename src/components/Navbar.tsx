@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -29,10 +28,10 @@ const Navbar = () => {
           <div className="flex items-center">
             <Link 
               to="/" 
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 hover:opacity-90 transition-opacity"
               onClick={() => setIsMenuOpen(false)}
             >
-              <span className="text-fc-yellow font-bold text-xl">ФК ГУДАУТА</span>
+              <span className="text-fc-yellow font-bold text-2xl md:text-3xl tracking-wide">ФК ГУДАУТА</span>
             </Link>
           </div>
           
