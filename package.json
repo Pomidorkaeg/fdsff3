@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist -b gh-pages",
-    "postbuild": "copy dist\\index.html dist\\404.html"
+    "postbuild": "node -e \"const fs=require('fs');fs.copyFileSync('dist/index.html','dist/404.html')\""
   },
   "homepage": "https://pomidorkaeg.github.io/fd/",
   "dependencies": {
