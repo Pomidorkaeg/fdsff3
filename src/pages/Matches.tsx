@@ -1,140 +1,44 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Calendar, Filter, ChevronDown, MapPin, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Calendar, Filter, ChevronDown, MapPin, ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+interface Match {
+  id: string;
+  homeTeam: string;
+  awayTeam: string;
+  date: string;
+  time: string;
+  venue: string;
+  competition: string;
+  status: 'scheduled' | 'live' | 'finished';
+  score?: {
+    home: number;
+    away: number;
+  };
+}
 
 const Matches = () => {
   const [filter, setFilter] = useState('upcoming');
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [matches, setMatches] = useState<Match[]>([]);
   
-  // Sample match data
-  const matchesData = [
-    // Upcoming matches
-    {
-      id: '1',
-      tournament: '3 Лига ПФЛ',
-      tournamentId: 'league-3',
-      homeTeam: 'ФК Сибирь',
-      awayTeam: 'Спартак',
-      date: '15.05.2024',
-      time: '19:00',
-      stadium: 'Стадион Спартак',
-      city: 'Новосибирск',
-      status: 'upcoming',
-      result: null,
-      month: 4 // May (0-indexed)
-    },
-    {
-      id: '2',
-      tournament: 'Кубок России',
-      tournamentId: 'russia-cup',
-      homeTeam: 'ФК Сибирь',
-      awayTeam: 'Спартак',
-      date: '20.05.2024',
-      time: '17:00',
-      stadium: 'Стадион Спартак',
-      city: 'Новосибирск',
-      status: 'upcoming',
-      result: null,
-      month: 4 // May
-    },
-    {
-      id: '3',
-      tournament: 'Чемпионат города Новосибирска',
-      tournamentId: 'novosibirsk-championship',
-      homeTeam: 'ФК Сибирь',
-      awayTeam: 'Локомотив',
-      date: '25.05.2024',
-      time: '16:00',
-      stadium: 'Стадион Локомотив',
-      city: 'Новосибирск',
-      status: 'upcoming',
-      result: null,
-      month: 4 // May
-    },
-    {
-      id: '4',
-      tournament: 'Кубок победы',
-      tournamentId: 'victory-cup',
-      homeTeam: 'Динамо',
-      awayTeam: 'ФК Сибирь',
-      date: '05.06.2024',
-      time: '18:30',
-      stadium: 'Стадион Динамо',
-      city: 'Барнаул',
-      status: 'upcoming',
-      result: null,
-      month: 5 // June
-    },
-    
-    // Past matches
-    {
-      id: '5',
-      tournament: '3 Лига ПФЛ',
-      tournamentId: 'league-3',
-      homeTeam: 'ФК Сибирь',
-      awayTeam: 'Енисей',
-      date: '10.04.2024',
-      time: '17:00',
-      stadium: 'Стадион Спартак',
-      city: 'Новосибирск',
-      status: 'completed',
-      result: { homeGoals: 2, awayGoals: 1 },
-      month: 3 // April
-    },
-    {
-      id: '6',
-      tournament: 'Кубок России',
-      tournamentId: 'russia-cup',
-      homeTeam: 'ЦСКА',
-      awayTeam: 'ФК Сибирь',
-      date: '05.04.2024',
-      time: '19:30',
-      stadium: 'Арена ЦСКА',
-      city: 'Москва',
-      status: 'completed',
-      result: { homeGoals: 3, awayGoals: 1 },
-      month: 3 // April
-    },
-    {
-      id: '7',
-      tournament: 'Чемпионат города Новосибирска',
-      tournamentId: 'novosibirsk-championship',
-      homeTeam: 'ФК Сибирь',
-      awayTeam: 'Динамо',
-      date: '28.03.2024',
-      time: '16:00',
-      stadium: 'Стадион Спартак',
-      city: 'Новосибирск',
-      status: 'completed',
-      result: { homeGoals: 1, awayGoals: 1 },
-      month: 2 // March
-    },
-    {
-      id: '8',
-      tournament: 'Кубок новосибирской области',
-      tournamentId: 'novosibirsk-region-cup',
-      homeTeam: 'Локомотив',
-      awayTeam: 'ФК Сибирь',
-      date: '15.03.2024',
-      time: '15:00',
-      stadium: 'Стадион Локомотив',
-      city: 'Новосибирск',
-      status: 'completed',
-      result: { homeGoals: 0, awayGoals: 2 },
-      month: 2 // March
+  // Load matches from localStorage
+  useEffect(() => {
+    const loadedMatches = localStorage.getItem('matches');
+    if (loadedMatches) {
+      setMatches(JSON.parse(loadedMatches));
     }
-  ];
+  }, []);
   
   // Filter matches based on status and month
-  const filteredMatches = matchesData.filter((match) => {
-    if (filter === 'upcoming' && match.status === 'upcoming') {
+  const filteredMatches = matches.filter((match) => {
+    if (filter === 'upcoming' && match.status === 'scheduled') {
       return true;
     }
-    if (filter === 'completed' && match.status === 'completed') {
+    if (filter === 'completed' && match.status === 'finished') {
       return true;
     }
     return false;
@@ -144,7 +48,8 @@ const Matches = () => {
       return true;
     } else {
       // For completed matches, filter by selected month
-      return match.month === currentMonth;
+      const matchDate = new Date(match.date);
+      return matchDate.getMonth() === currentMonth;
     }
   });
   
@@ -256,103 +161,60 @@ const Matches = () => {
         </section>
         
         {/* Matches List */}
-        <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          {filteredMatches.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-500 mb-4">
-                {filter === 'upcoming' 
-                  ? 'Нет предстоящих матчей' 
-                  : `Нет прошедших матчей в ${monthNames[currentMonth]} ${currentYear}`}
-              </p>
-              {filter === 'completed' && (
-                <div className="flex justify-center space-x-4">
-                  <button
-                    onClick={handlePreviousMonth}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors flex items-center"
-                  >
-                    <ChevronLeft size={16} className="mr-1" />
-                    Предыдущий месяц
-                  </button>
-                  
-                  <button
-                    onClick={handleNextMonth}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 transition-colors flex items-center"
-                  >
-                    Следующий месяц
-                    <ChevronRight size={16} className="ml-1" />
-                  </button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {filteredMatches.map((match) => (
-                <div 
-                  key={match.id} 
-                  className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-200 card-hover"
-                >
-                  <div className="p-4 border-b border-gray-100 bg-fc-green/5 flex justify-between items-center">
-                    <div className="flex items-center">
-                      <span className="px-3 py-1 bg-white rounded-full text-sm font-medium text-fc-green">
-                        {match.tournament}
-                      </span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-1 text-gray-500 text-sm">
-                      <Calendar size={14} />
-                      <span>{match.date}</span>
-                      <span className="text-gray-300">|</span>
-                      <span>{match.time}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="p-6">
-                    <div className="flex justify-between items-center mb-6">
-                      <div className="text-center flex-1">
-                        <div className="font-bold text-xl mb-1">{match.homeTeam}</div>
-                        <div className="text-sm text-gray-500">Хозяева</div>
-                      </div>
-                      
-                      <div className="flex-shrink-0 px-4">
-                        {match.status === 'completed' ? (
-                          <div className="text-2xl font-bold">
-                            {match.result?.homeGoals} - {match.result?.awayGoals}
-                          </div>
-                        ) : (
-                          <div className="text-2xl font-bold text-gray-400">VS</div>
-                        )}
-                      </div>
-                      
-                      <div className="text-center flex-1">
-                        <div className="font-bold text-xl mb-1">{match.awayTeam}</div>
-                        <div className="text-sm text-gray-500">Гости</div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-between text-sm text-gray-500 pt-4 border-t border-gray-100">
-                      <div className="flex items-center">
-                        <MapPin size={16} className="mr-1" />
-                        <span>{match.stadium}, г. {match.city}</span>
-                      </div>
-                      
-                      {match.status === 'completed' ? (
-                        <a 
-                          href={`/tournaments/${match.tournamentId}`}
-                          className="text-fc-green hover:underline"
-                        >
-                          Турнирная таблица
-                        </a>
-                      ) : (
-                        <div className="px-3 py-1 bg-fc-yellow/10 text-fc-yellow rounded-full text-xs font-medium">
-                          Предстоящий матч
-                        </div>
-                      )}
+        <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          <div className="grid gap-6">
+            {filteredMatches.map((match) => (
+              <div key={match.id} className="bg-white rounded-lg shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      match.status === 'live' ? 'bg-fc-green text-white' :
+                      match.status === 'finished' ? 'bg-gray-200 text-gray-700' :
+                      'bg-fc-yellow text-gray-900'
+                    }`}>
+                      {match.status === 'live' ? 'Идет матч' :
+                       match.status === 'finished' ? 'Завершен' :
+                       'Запланирован'}
+                    </span>
+                    <div className="flex items-center gap-2 text-gray-500">
+                      <Calendar className="h-4 w-4" />
+                      <span>{match.date} {match.time}</span>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+
+                <div className="flex items-center gap-8">
+                  <div className="flex-1">
+                    <div className="text-lg font-semibold">{match.homeTeam}</div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {match.status !== 'scheduled' && match.score && (
+                      <div className="text-2xl font-bold">
+                        {match.score.home} - {match.score.away}
+                      </div>
+                    )}
+                    {match.status === 'scheduled' && (
+                      <div className="text-xl font-bold">vs</div>
+                    )}
+                  </div>
+                  <div className="flex-1 text-right">
+                    <div className="text-lg font-semibold">{match.awayTeam}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
+                  <div className="flex items-center gap-2">
+                    <Trophy className="h-4 w-4" />
+                    {match.competition}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4" />
+                    {match.venue}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </section>
       </main>
       
