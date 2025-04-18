@@ -52,6 +52,7 @@ export interface Tournament {
   season: string;
   teams: number;
   featured: boolean;
+  source: string;
 }
 
 // Функция для получения данных с сайта МОО СФФ "Сибирь"
@@ -174,6 +175,7 @@ export const getTournamentsList = async (): Promise<Tournament[]> => {
           season: "2024",
           teams: 16,
           featured: true,
+          source: "SFF-Siberia",
         },
         {
           id: "siberia-league-2024",
@@ -182,6 +184,7 @@ export const getTournamentsList = async (): Promise<Tournament[]> => {
           season: "2024",
           teams: 8,
           featured: false,
+          source: "SFF-Siberia",
         },
         {
           id: "novosibirsk-championship-2024",
@@ -190,6 +193,7 @@ export const getTournamentsList = async (): Promise<Tournament[]> => {
           season: "2024",
           teams: 12,
           featured: true,
+          source: "FFNSO",
         },
         {
           id: "novosibirsk-cup-2024",
@@ -198,6 +202,7 @@ export const getTournamentsList = async (): Promise<Tournament[]> => {
           season: "2024",
           teams: 16,
           featured: false,
+          source: "FFNSO",
         },
         {
           id: "novosibirsk-region-cup-2024",
@@ -206,6 +211,7 @@ export const getTournamentsList = async (): Promise<Tournament[]> => {
           season: "2024",
           teams: 18,
           featured: false,
+          source: "SFF-Siberia",
         },
       ]);
     }, 1000);

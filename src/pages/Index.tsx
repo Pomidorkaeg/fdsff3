@@ -4,6 +4,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import TournamentCard from '@/components/TournamentCard';
 import LazyTournamentTable from '@/components/LazyTournamentTable';
+import MatchesCarousel from '@/components/matches/MatchesCarousel';
 import { ArrowRight, Trophy, Users, Star } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,32 @@ const Index = () => {
       <main className="flex-grow page-transition">
         <Hero />
         
+        {/* Matches Section */}
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">БЛИЖАЙШИЕ МАТЧИ</h2>
+              <div className="w-24 h-1 bg-fc-yellow mx-auto mb-6"></div>
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+                Следите за расписанием матчей и результатами
+              </p>
+            </div>
+            
+            <div className="max-w-3xl mx-auto">
+              <MatchesCarousel />
+            </div>
+            
+            <div className="mt-10 text-center">
+              <Button asChild variant="subtle" size="lg">
+                <Link to="/matches" className="inline-flex items-center">
+                  Все матчи
+                  <ArrowRight className="ml-2" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+        
         {/* Featured Tournament Table Section */}
         <section className="pt-32 px-4 sm:px-6 lg:px-8 bg-white">
           <div className="max-w-7xl mx-auto">
@@ -60,7 +87,7 @@ const Index = () => {
               {featuredTournament && !loading ? (
                 <LazyTournamentTable 
                   tournamentId={featuredTournament.id} 
-                  source={featuredTournament.source} 
+                  source={featuredTournament.source}
                 />
               ) : (
                 <div className="min-h-[400px] flex items-center justify-center">
