@@ -4,6 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./lib/auth-context";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 // Simple loading component
 const PageLoading = () => (
@@ -34,6 +36,7 @@ const TeamsManagement = lazy(() => import("./pages/admin/TeamsManagement"));
 const NewsManagement = lazy(() => import("./pages/admin/NewsManagement"));
 const MediaManagement = lazy(() => import("./pages/admin/MediaManagement"));
 const MatchesManagement = lazy(() => import("./pages/admin/MatchesManagement"));
+const Login = lazy(() => import("./pages/admin/Login"));
 
 // Configure React Query client
 const queryClient = new QueryClient({
@@ -50,41 +53,48 @@ const queryClient = new QueryClient({
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter basename="/fds">
-          <Suspense fallback={<PageLoading />}>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/team" element={<Team />} />
-              <Route path="/news" element={<News />} />
-              <Route path="/matches" element={<Matches />} />
-              <Route path="/tournaments" element={<Tournaments />} />
-              <Route path="/tournaments/:id" element={<Tournaments />} />
-              <Route path="/media" element={<Media />} />
-              <Route path="/contacts" element={<Contacts />} />
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter basename="/fds">
+            <Suspense fallback={<PageLoading />}>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Index />} />
+                <Route path="/team" element={<Team />} />
+                <Route path="/news" element={<News />} />
+                <Route path="/matches" element={<Matches />} />
+                <Route path="/tournaments" element={<Tournaments />} />
+                <Route path="/tournaments/:id" element={<Tournaments />} />
+                <Route path="/media" element={<Media />} />
+                <Route path="/contacts" element={<Contacts />} />
 
-              {/* Admin routes */}
-              <Route path="/admin" element={<AdminDashboard />}>
-                <Route index element={<AdminHome />} />
-                <Route path="players" element={<PlayersManagement />} />
-                <Route path="coaches" element={<CoachesManagement />} />
-                <Route path="teams" element={<TeamsManagement />} />
-                <Route path="tournaments" element={<AdminHome />} />
-                <Route path="news" element={<NewsManagement />} />
-                <Route path="media" element={<MediaManagement />} />
-                <Route path="matches" element={<MatchesManagement />} />
-              </Route>
+                {/* Admin routes */}
+                <Route path="/admin/login" element={<Login />} />
+                <Route path="/admin" element={
+                  <ProtectedRoute>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }>
+                  <Route index element={<AdminHome />} />
+                  <Route path="players" element={<PlayersManagement />} />
+                  <Route path="coaches" element={<CoachesManagement />} />
+                  <Route path="teams" element={<TeamsManagement />} />
+                  <Route path="tournaments" element={<AdminHome />} />
+                  <Route path="news" element={<NewsManagement />} />
+                  <Route path="media" element={<MediaManagement />} />
+                  <Route path="matches" element={<MatchesManagement />} />
+                </Route>
 
-              {/* 404 and fallback routes */}
-              <Route path="/404" element={<NotFound />} />
-              <Route path="*" element={<Navigate to="/404" replace />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-      </TooltipProvider>
+                {/* 404 and fallback routes */}
+                <Route path="/404" element={<NotFound />} />
+                <Route path="*" element={<Navigate to="/404" replace />} />
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 };

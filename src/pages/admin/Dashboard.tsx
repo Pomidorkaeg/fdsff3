@@ -1,8 +1,17 @@
 import React from 'react';
-import { Link, Outlet } from 'react-router-dom';
+import { Link, Outlet, useNavigate } from 'react-router-dom';
 import { Users, Trophy, Settings, LogOut, Users2, Shield, Newspaper, Image, Calendar } from 'lucide-react';
+import { useAuth } from '../../lib/auth-context';
 
 const AdminDashboard = () => {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/admin/login');
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Admin Header */}
@@ -13,13 +22,20 @@ const AdminDashboard = () => {
               <Shield className="w-8 h-8 text-white mr-2" />
               <span className="text-white font-bold text-xl">ФК Гудаута Админ</span>
             </div>
-            <div>
+            <div className="flex items-center gap-4">
               <Link 
                 to="/" 
                 className="text-white hover:text-gray-200 text-sm flex items-center bg-white/10 px-4 py-2 rounded-full transition-all hover:bg-white/20"
               >
                 <span>Вернуться на сайт</span>
               </Link>
+              <button
+                onClick={handleLogout}
+                className="text-white hover:text-gray-200 text-sm flex items-center bg-white/10 px-4 py-2 rounded-full transition-all hover:bg-white/20"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                <span>Выйти</span>
+              </button>
             </div>
           </div>
         </div>
@@ -144,16 +160,6 @@ const AdminDashboard = () => {
                   </Link>
                 </li>
               </ul>
-            </div>
-
-            <div className="pt-4 border-t border-gray-200 mt-4">
-              <button 
-                className="w-full px-4 py-2.5 rounded-lg bg-gradient-to-r from-fc-red/10 to-red-600/10 text-fc-red font-medium flex items-center hover:from-fc-red/20 hover:to-red-600/20 transition-all"
-                onClick={() => { alert('Выход из системы'); window.location.href = '/'; }}
-              >
-                <LogOut className="mr-3 h-5 w-5" />
-                Выйти
-              </button>
             </div>
           </nav>
         </aside>
