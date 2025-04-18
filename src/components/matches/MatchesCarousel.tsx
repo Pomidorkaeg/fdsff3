@@ -9,11 +9,13 @@ const MatchesCarousel: React.FC = () => {
   const { matches } = useMatches();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [direction, setDirection] = useState<'left' | 'right'>('right');
   
   useEffect(() => {
     if (!isAutoPlaying || matches.length <= 1) return;
     
     const interval = setInterval(() => {
+      setDirection('right');
       setCurrentIndex((prevIndex) => 
         prevIndex === matches.length - 1 ? 0 : prevIndex + 1
       );
@@ -23,6 +25,7 @@ const MatchesCarousel: React.FC = () => {
   }, [matches.length, isAutoPlaying]);
   
   const nextMatch = () => {
+    setDirection('right');
     setCurrentIndex((prevIndex) => 
       prevIndex === matches.length - 1 ? 0 : prevIndex + 1
     );
@@ -30,6 +33,7 @@ const MatchesCarousel: React.FC = () => {
   };
   
   const prevMatch = () => {
+    setDirection('left');
     setCurrentIndex((prevIndex) => 
       prevIndex === 0 ? matches.length - 1 : prevIndex - 1
     );
@@ -47,8 +51,15 @@ const MatchesCarousel: React.FC = () => {
   const currentMatch = matches[currentIndex];
   
   return (
-    <div className="relative">
-      <Card className="p-6">
+    <div className="relative overflow-hidden">
+      <Card 
+        className={`p-6 transition-transform duration-500 ease-in-out transform ${
+          direction === 'right' ? 'slide-right' : 'slide-left'
+        }`}
+        style={{
+          animation: `slide-${direction} 0.5s ease-in-out`
+        }}
+      >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -72,7 +83,7 @@ const MatchesCarousel: React.FC = () => {
                 variant="outline"
                 size="icon"
                 onClick={prevMatch}
-                className="h-8 w-8"
+                className="h-8 w-8 transition-transform hover:scale-105"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -80,7 +91,7 @@ const MatchesCarousel: React.FC = () => {
                 variant="outline"
                 size="icon"
                 onClick={nextMatch}
-                className="h-8 w-8"
+                className="h-8 w-8 transition-transform hover:scale-105"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
@@ -122,16 +133,49 @@ const MatchesCarousel: React.FC = () => {
             <button
               key={index}
               onClick={() => {
+                setDirection(index > currentIndex ? 'right' : 'left');
                 setCurrentIndex(index);
                 setIsAutoPlaying(false);
               }}
-              className={`h-2 w-2 rounded-full transition-colors ${
-                index === currentIndex ? 'bg-fc-green' : 'bg-gray-300'
+              className={`h-2 w-2 rounded-full transition-all duration-300 ${
+                index === currentIndex ? 'bg-fc-green scale-125' : 'bg-gray-300 hover:scale-110'
               }`}
             />
           ))}
         </div>
       )}
+
+      <style>{`
+        @keyframes slide-right {
+          from {
+            transform: translateX(-100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        
+        @keyframes slide-left {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        
+        .slide-right {
+          animation: slide-right 0.5s ease-in-out;
+        }
+        
+        .slide-left {
+          animation: slide-left 0.5s ease-in-out;
+        }
+      `}</style>
     </div>
   );
 };
