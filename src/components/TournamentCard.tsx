@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Trophy } from 'lucide-react';
+import { ChevronRight, Trophy, Calendar } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TournamentCardProps {
@@ -42,12 +41,10 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
             <Trophy size={20} />
           </div>
           
-          <span className={cn(
-            "text-sm font-medium px-3 py-1 rounded-full",
-            featured ? "bg-fc-yellow/20 text-fc-yellow" : "bg-gray-100 text-gray-600"
-          )}>
-            {season}
-          </span>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Calendar className="h-4 w-4" />
+            <span>{season}</span>
+          </div>
         </div>
         
         <h3 className={cn(

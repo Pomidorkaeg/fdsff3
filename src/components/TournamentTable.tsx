@@ -320,7 +320,9 @@ const TournamentTable: React.FC<TournamentTableProps> = ({
       </div>
       
       <div className="px-6 py-4 bg-gray-50 text-xs text-gray-500 border-t border-gray-100">
-        Источник данных: {source} | Данные могут обновляться с задержкой
+        <div className="text-sm text-muted-foreground">
+          Данные обновляются автоматически
+        </div>
       </div>
     </div>
   );
