@@ -38,19 +38,19 @@ const PlayerCard = ({ player, onClick, primaryColor = '#2E7D32', small = false }
         <div 
           className="absolute inset-0"
           style={{ 
-            background: `linear-gradient(to top, ${primaryColor}cc, transparent)` 
+            background: `linear-gradient(to top, ${primaryColor}dd, ${primaryColor}33)` 
           }}
         />
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
+      <div className="absolute bottom-0 left-0 right-0 p-4">
         <div className="flex items-end justify-between">
           <div>
-            <h3 className="text-lg font-semibold leading-tight mb-1">{player.name}</h3>
-            <p className="text-sm text-white/80">{player.position}</p>
+            <h3 className="text-lg font-bold leading-tight mb-1 text-white drop-shadow-lg">{player.name}</h3>
+            <p className="text-sm font-medium text-white/90 drop-shadow-md">{player.position}</p>
           </div>
           <div className="text-right">
-            <span className="text-3xl font-bold">{player.number}</span>
+            <span className="text-3xl font-bold text-white drop-shadow-lg">{player.number}</span>
           </div>
         </div>
       </div>
