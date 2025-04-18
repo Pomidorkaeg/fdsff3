@@ -67,7 +67,6 @@ const TournamentCard: React.FC<TournamentCardProps> = ({
             "flex items-center text-sm font-medium",
             featured ? "text-fc-green" : "text-gray-600"
           )}>
-            Источник: {source}
             <ChevronRight size={16} className="ml-1" />
           </div>
         </div>
