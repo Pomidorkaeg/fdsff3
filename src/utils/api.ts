@@ -1,4 +1,3 @@
-
 import { toast } from '@/components/ui/use-toast';
 
 // Define interfaces for the API responses
@@ -60,8 +59,7 @@ export interface Tournament {
 export const getSffSiberiaData = async (tournamentId: string): Promise<TournamentData> => {
   console.log(`Fetching data from SFF-Siberia for tournament ID: ${tournamentId}`);
   
-  // В реальном приложении здесь был бы API-запрос к прокси-серверу, который парсит данные с sff-siberia.ru
-  // Для демонстрации используем моковые данные с указанием реального источника
+  // В реальном приложении здесь был бы API-запрос к прокси-серверу
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({
@@ -108,8 +106,7 @@ export const getSffSiberiaData = async (tournamentId: string): Promise<Tournamen
 export const getFfnsoData = async (tournamentId: string): Promise<TournamentData> => {
   console.log(`Fetching data from FFNSO for tournament ID: ${tournamentId}`);
   
-  // В реальном приложении здесь был бы API-запрос к прокси-серверу, который парсит данные с ffnso.ru
-  // Для демонстрации используем моковые данные с указанием реального источника
+  // В реальном приложении здесь был бы API-запрос к прокси-серверу
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({
@@ -158,9 +155,9 @@ export const getTournamentTable = async (tournamentId: string, source: string): 
   console.log(`Fetching tournament data for ID: ${tournamentId} from source: ${source}`);
   
   try {
-    if (source === "sff-siberia.ru") {
+    if (source === "source1") {
       return await getSffSiberiaData(tournamentId);
-    } else if (source === "ffnso.ru") {
+    } else if (source === "source2") {
       return await getFfnsoData(tournamentId);
     } else {
       throw new Error(`Unknown data source: ${source}`);
@@ -186,7 +183,7 @@ export const getTournamentsList = async (): Promise<Tournament[]> => {
           type: "Кубковый турнир",
           season: "2024",
           teams: 16,
-          source: "sff-siberia.ru",
+          source: "source1",
           featured: true,
         },
         {
@@ -195,7 +192,7 @@ export const getTournamentsList = async (): Promise<Tournament[]> => {
           type: "Регулярный чемпионат",
           season: "2024",
           teams: 8,
-          source: "sff-siberia.ru",
+          source: "source1",
           featured: false,
         },
         {
@@ -204,7 +201,7 @@ export const getTournamentsList = async (): Promise<Tournament[]> => {
           type: "Городской чемпионат",
           season: "2024",
           teams: 12,
-          source: "ffnso.ru",
+          source: "source2",
           featured: true,
         },
         {
@@ -213,7 +210,7 @@ export const getTournamentsList = async (): Promise<Tournament[]> => {
           type: "Кубковый турнир",
           season: "2024",
           teams: 16,
-          source: "ffnso.ru",
+          source: "source2",
           featured: false,
         },
         {
@@ -222,7 +219,7 @@ export const getTournamentsList = async (): Promise<Tournament[]> => {
           type: "Региональный кубок",
           season: "2024",
           teams: 18,
-          source: "ffnso.ru",
+          source: "source2",
           featured: false,
         },
       ]);
@@ -235,9 +232,9 @@ export const fetchTournamentData = async (tournamentId: string): Promise<Tournam
   console.log(`Fetching data for tournament ID: ${tournamentId}`);
   
   // Определяем источник данных по ID турнира
-  let source = "sff-siberia.ru";
+  let source = "source1";
   if (["novosibirsk-championship-2024", "novosibirsk-cup-2024", "novosibirsk-region-cup-2024"].includes(tournamentId)) {
-    source = "ffnso.ru";
+    source = "source2";
   }
   
   try {
