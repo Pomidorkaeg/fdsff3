@@ -55,10 +55,6 @@ const Team = () => {
     setActiveTab('details'); // Reset to details tab when switching teams
   };
 
-  const handleManagePlayers = () => {
-    navigate(`/admin/players?team=${activeTeam}`);
-  };
-
   // Find current team 
   const currentTeam = teams.find(team => team.id === activeTeam);
   
@@ -93,27 +89,15 @@ const Team = () => {
           )}
           
           {activeTab === 'players' && (
-            <>
-              <div className="flex justify-end mb-4">
-                <Button 
-                  variant="outline" 
-                  onClick={handleManagePlayers} 
-                  className="flex items-center gap-2"
-                >
-                  <Edit className="h-4 w-4" />
-                  Управление игроками
-                </Button>
-              </div>
-              <PlayersSection
-                players={players}
-                activePosition={activePosition}
-                selectedPlayer={selectedPlayer}
-                primaryColor={primaryColor}
-                secondaryColor={secondaryColor}
-                onPositionChange={setActivePosition}
-                onPlayerSelect={handlePlayerClick}
-              />
-            </>
+            <PlayersSection
+              players={players}
+              activePosition={activePosition}
+              selectedPlayer={selectedPlayer}
+              primaryColor={primaryColor}
+              secondaryColor={secondaryColor}
+              onPositionChange={setActivePosition}
+              onPlayerSelect={handlePlayerClick}
+            />
           )}
 
           {activeTab === 'statistics' && (
