@@ -20,69 +20,45 @@ import {
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useMatches } from '@/hooks/useMatches';
+import { Match } from '@/hooks/useMatches';
 
-interface Match {
-  id: string;
-  homeTeam: string;
-  awayTeam: string;
-  date: string;
-  time: string;
-  venue: string;
-  competition: string;
-  status: 'scheduled' | 'live' | 'finished';
-  score?: {
-    home: number;
-    away: number;
-  };
-}
-
-const MatchesManagement = () => {
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [editMode, setEditMode] = useState(false);
-  const [currentMatch, setCurrentMatch] = useState<Match | null>(null);
-  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
-
-  // Load matches from storage on component mount
-  React.useEffect(() => {
-    const loadedMatches = localStorage.getItem('matches');
-    console.log('Loading matches from localStorage:', loadedMatches);
-    if (loadedMatches) {
-      try {
-        const parsedMatches = JSON.parse(loadedMatches);
-        console.log('Parsed matches:', parsedMatches);
-        setMatches(Array.isArray(parsedMatches) ? parsedMatches : []);
-      } catch (error) {
-        console.error('Error loading matches:', error);
-        setMatches([]);
-      }
-    }
-  }, []);
+const MatchesManagement: React.FC = () => {
+  const { matches, addMatch, updateMatch, deleteMatch } = useMatches();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingMatch, setEditingMatch] = useState<Match | null>(null);
+  const [formData, setFormData] = useState<Partial<Match>>({
+    homeTeam: '',
+    awayTeam: '',
+    date: '',
+    time: '',
+    competition: '',
+    venue: '',
+    score: { home: 0, away: 0 }
+  });
 
   const handleAddNew = () => {
-    const newMatch: Match = {
-      id: Date.now().toString(),
+    setEditingMatch(null);
+    setFormData({
       homeTeam: '',
       awayTeam: '',
       date: '',
       time: '',
-      venue: '',
       competition: '',
-      status: 'scheduled'
-    };
-    setCurrentMatch(newMatch);
-    setEditMode(true);
+      venue: '',
+      score: { home: 0, away: 0 }
+    });
+    setIsDialogOpen(true);
   };
 
   const handleEdit = (match: Match) => {
-    setCurrentMatch(match);
-    setEditMode(true);
+    setEditingMatch(match);
+    setFormData(match);
+    setIsDialogOpen(true);
   };
 
-  const handleSave = (match: Match) => {
-    console.log('Saving match:', match);
-    
-    // Validate required fields
-    if (!match.homeTeam || !match.awayTeam || !match.date || !match.time || !match.venue || !match.competition) {
+  const handleSave = () => {
+    if (!formData.homeTeam || !formData.awayTeam || !formData.date || !formData.time) {
       toast({
         title: "Ошибка",
         description: "Пожалуйста, заполните все обязательные поля",
@@ -92,38 +68,25 @@ const MatchesManagement = () => {
     }
 
     try {
-      let updatedMatches: Match[];
-      
-      if (match.id) {
-        // Update existing match
-        updatedMatches = matches.map(m => m.id === match.id ? match : m);
+      if (editingMatch) {
+        const updatedMatch: Match = {
+          ...formData,
+          id: editingMatch.id
+        } as Match;
+        updateMatch(updatedMatch);
+        toast({
+          title: "Успех",
+          description: "Матч успешно обновлен"
+        });
       } else {
-        // Add new match
-        const newMatch = { ...match, id: Date.now().toString() };
-        updatedMatches = [...matches, newMatch];
+        addMatch(formData as Match);
+        toast({
+          title: "Успех",
+          description: "Матч успешно добавлен"
+        });
       }
-
-      console.log('Updated matches array:', updatedMatches);
-      
-      // Save to localStorage
-      localStorage.setItem('matches', JSON.stringify(updatedMatches));
-      console.log('Saved to localStorage');
-      
-      // Update state
-      setMatches(updatedMatches);
-      
-      // Trigger storage event
-      window.dispatchEvent(new Event('storage'));
-      
-      setEditMode(false);
-      setCurrentMatch(null);
-      
-      toast({
-        title: "Успешно сохранено",
-        description: "Матч был успешно сохранен",
-      });
+      setIsDialogOpen(false);
     } catch (error) {
-      console.error('Error saving match:', error);
       toast({
         title: "Ошибка",
         description: "Произошла ошибка при сохранении матча",
@@ -132,23 +95,14 @@ const MatchesManagement = () => {
     }
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = (matchId: string) => {
     try {
-      setMatches(prev => {
-        const updated = prev.filter(match => match.id !== id);
-        localStorage.setItem('matches', JSON.stringify(updated));
-        // Trigger storage event
-        window.dispatchEvent(new Event('storage'));
-        return updated;
-      });
-      setConfirmDelete(null);
+      deleteMatch(matchId);
       toast({
-        title: "Удалено",
-        description: "Матч был успешно удален",
-        variant: "destructive"
+        title: "Успех",
+        description: "Матч успешно удален"
       });
     } catch (error) {
-      console.error('Error deleting match:', error);
       toast({
         title: "Ошибка",
         description: "Произошла ошибка при удалении матча",
@@ -226,7 +180,7 @@ const MatchesManagement = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setConfirmDelete(match.id)}
+                  onClick={() => handleDelete(match.id)}
                   className="text-fc-red hover:text-fc-red/80"
                 >
                   <Trash className="h-4 w-4 mr-1" /> Удалить
@@ -237,162 +191,138 @@ const MatchesManagement = () => {
         ))}
       </div>
 
-      {editMode && currentMatch && (
-        <Dialog open={editMode} onOpenChange={() => setEditMode(false)}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>
-                {currentMatch.id ? 'Редактировать матч' : 'Добавить новый матч'}
-              </DialogTitle>
-            </DialogHeader>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>
+              {editingMatch ? 'Редактировать матч' : 'Добавить новый матч'}
+            </DialogTitle>
+          </DialogHeader>
 
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="homeTeam">Домашняя команда</Label>
-                  <Input
-                    id="homeTeam"
-                    value={currentMatch.homeTeam}
-                    onChange={(e) => setCurrentMatch({ ...currentMatch, homeTeam: e.target.value })}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="awayTeam">Гостевая команда</Label>
-                  <Input
-                    id="awayTeam"
-                    value={currentMatch.awayTeam}
-                    onChange={(e) => setCurrentMatch({ ...currentMatch, awayTeam: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="date">Дата</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={currentMatch.date}
-                    onChange={(e) => setCurrentMatch({ ...currentMatch, date: e.target.value })}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="time">Время</Label>
-                  <Input
-                    id="time"
-                    type="time"
-                    value={currentMatch.time}
-                    onChange={(e) => setCurrentMatch({ ...currentMatch, time: e.target.value })}
-                  />
-                </div>
-              </div>
-
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="venue">Стадион</Label>
+                <Label htmlFor="homeTeam">Домашняя команда</Label>
                 <Input
-                  id="venue"
-                  value={currentMatch.venue}
-                  onChange={(e) => setCurrentMatch({ ...currentMatch, venue: e.target.value })}
+                  id="homeTeam"
+                  value={formData.homeTeam}
+                  onChange={(e) => setFormData({ ...formData, homeTeam: e.target.value })}
                 />
               </div>
-
               <div className="grid gap-2">
-                <Label htmlFor="competition">Соревнование</Label>
+                <Label htmlFor="awayTeam">Гостевая команда</Label>
                 <Input
-                  id="competition"
-                  value={currentMatch.competition}
-                  onChange={(e) => setCurrentMatch({ ...currentMatch, competition: e.target.value })}
+                  id="awayTeam"
+                  value={formData.awayTeam}
+                  onChange={(e) => setFormData({ ...formData, awayTeam: e.target.value })}
                 />
               </div>
-
-              <div className="grid gap-2">
-                <Label>Статус матча</Label>
-                <Select
-                  value={currentMatch.status}
-                  onValueChange={(value: 'scheduled' | 'live' | 'finished') => 
-                    setCurrentMatch({ ...currentMatch, status: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="scheduled">Запланирован</SelectItem>
-                    <SelectItem value="live">Идет матч</SelectItem>
-                    <SelectItem value="finished">Завершен</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {currentMatch.status !== 'scheduled' && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="scoreHome">Голы (хозяева)</Label>
-                    <Input
-                      id="scoreHome"
-                      type="number"
-                      min="0"
-                      value={currentMatch.score?.home || 0}
-                      onChange={(e) => setCurrentMatch({
-                        ...currentMatch,
-                        score: {
-                          ...currentMatch.score,
-                          home: parseInt(e.target.value) || 0
-                        }
-                      })}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="scoreAway">Голы (гости)</Label>
-                    <Input
-                      id="scoreAway"
-                      type="number"
-                      min="0"
-                      value={currentMatch.score?.away || 0}
-                      onChange={(e) => setCurrentMatch({
-                        ...currentMatch,
-                        score: {
-                          ...currentMatch.score,
-                          away: parseInt(e.target.value) || 0
-                        }
-                      })}
-                    />
-                  </div>
-                </div>
-              )}
             </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setEditMode(false)}>
-                Отмена
-              </Button>
-              <Button 
-                onClick={() => handleSave(currentMatch)}
-                className="bg-fc-green hover:bg-fc-darkGreen"
-              >
-                Сохранить
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="date">Дата</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="time">Время</Label>
+                <Input
+                  id="time"
+                  type="time"
+                  value={formData.time}
+                  onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                />
+              </div>
+            </div>
 
-      <Dialog open={!!confirmDelete} onOpenChange={() => setConfirmDelete(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Подтвердите удаление</DialogTitle>
-            <DialogDescription>
-              Вы уверены, что хотите удалить этот матч? Это действие нельзя отменить.
-            </DialogDescription>
-          </DialogHeader>
+            <div className="grid gap-2">
+              <Label htmlFor="venue">Стадион</Label>
+              <Input
+                id="venue"
+                value={formData.venue}
+                onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="competition">Соревнование</Label>
+              <Input
+                id="competition"
+                value={formData.competition}
+                onChange={(e) => setFormData({ ...formData, competition: e.target.value })}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label>Статус матча</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value: 'scheduled' | 'live' | 'finished') => 
+                  setFormData({ ...formData, status: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="scheduled">Запланирован</SelectItem>
+                  <SelectItem value="live">Идет матч</SelectItem>
+                  <SelectItem value="finished">Завершен</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {formData.status !== 'scheduled' && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="scoreHome">Голы (хозяева)</Label>
+                  <Input
+                    id="scoreHome"
+                    type="number"
+                    min="0"
+                    value={formData.score?.home || 0}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      score: {
+                        ...formData.score,
+                        home: parseInt(e.target.value) || 0
+                      }
+                    })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="scoreAway">Голы (гости)</Label>
+                  <Input
+                    id="scoreAway"
+                    type="number"
+                    min="0"
+                    value={formData.score?.away || 0}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      score: {
+                        ...formData.score,
+                        away: parseInt(e.target.value) || 0
+                      }
+                    })}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setConfirmDelete(null)}>
+            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
               Отмена
             </Button>
-            <Button
-              variant="destructive"
-              onClick={() => confirmDelete && handleDelete(confirmDelete)}
+            <Button 
+              onClick={handleSave}
+              className="bg-fc-green hover:bg-fc-darkGreen"
             >
-              Удалить
+              Сохранить
             </Button>
           </DialogFooter>
         </DialogContent>
