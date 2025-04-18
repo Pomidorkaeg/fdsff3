@@ -51,7 +51,6 @@ export interface Tournament {
   type: string;
   season: string;
   teams: number;
-  source: string;
   featured: boolean;
 }
 
@@ -151,17 +150,11 @@ export const getFfnsoData = async (tournamentId: string): Promise<TournamentData
 };
 
 // This would be a real API call in production
-export const getTournamentTable = async (tournamentId: string, source: string): Promise<TournamentData> => {
-  console.log(`Fetching tournament data for ID: ${tournamentId} from source: ${source}`);
+export const getTournamentTable = async (tournamentId: string): Promise<TournamentData> => {
+  console.log(`Fetching tournament data for ID: ${tournamentId}`);
   
   try {
-    if (source === "source1") {
-      return await getSffSiberiaData(tournamentId);
-    } else if (source === "source2") {
-      return await getFfnsoData(tournamentId);
-    } else {
-      throw new Error(`Unknown data source: ${source}`);
-    }
+    return await getSffSiberiaData(tournamentId);
   } catch (error) {
     console.error("Failed to fetch tournament data:", error);
     throw error;
@@ -171,11 +164,8 @@ export const getTournamentTable = async (tournamentId: string, source: string): 
 export const getTournamentsList = async (): Promise<Tournament[]> => {
   console.log("Fetching tournaments list");
   
-  // В реальном приложении здесь был бы API-запрос
   return new Promise((resolve) => {
-    // Simulate network request
     setTimeout(() => {
-      // This is placeholder data - in a real app, this would come from the API
       resolve([
         {
           id: "siberia-cup-2024",
@@ -183,7 +173,6 @@ export const getTournamentsList = async (): Promise<Tournament[]> => {
           type: "Кубковый турнир",
           season: "2024",
           teams: 16,
-          source: "source1",
           featured: true,
         },
         {
@@ -192,7 +181,6 @@ export const getTournamentsList = async (): Promise<Tournament[]> => {
           type: "Регулярный чемпионат",
           season: "2024",
           teams: 8,
-          source: "source1",
           featured: false,
         },
         {
@@ -201,7 +189,6 @@ export const getTournamentsList = async (): Promise<Tournament[]> => {
           type: "Городской чемпионат",
           season: "2024",
           teams: 12,
-          source: "source2",
           featured: true,
         },
         {
@@ -210,7 +197,6 @@ export const getTournamentsList = async (): Promise<Tournament[]> => {
           type: "Кубковый турнир",
           season: "2024",
           teams: 16,
-          source: "source2",
           featured: false,
         },
         {
@@ -219,7 +205,6 @@ export const getTournamentsList = async (): Promise<Tournament[]> => {
           type: "Региональный кубок",
           season: "2024",
           teams: 18,
-          source: "source2",
           featured: false,
         },
       ]);
@@ -231,14 +216,8 @@ export const getTournamentsList = async (): Promise<Tournament[]> => {
 export const fetchTournamentData = async (tournamentId: string): Promise<TournamentData> => {
   console.log(`Fetching data for tournament ID: ${tournamentId}`);
   
-  // Определяем источник данных по ID турнира
-  let source = "source1";
-  if (["novosibirsk-championship-2024", "novosibirsk-cup-2024", "novosibirsk-region-cup-2024"].includes(tournamentId)) {
-    source = "source2";
-  }
-  
   try {
-    const data = await getTournamentTable(tournamentId, source);
+    const data = await getTournamentTable(tournamentId);
     return data;
   } catch (error) {
     console.error("Error fetching tournament data:", error);
