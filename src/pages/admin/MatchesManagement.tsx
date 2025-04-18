@@ -46,7 +46,13 @@ const MatchesManagement = () => {
   React.useEffect(() => {
     const loadedMatches = localStorage.getItem('matches');
     if (loadedMatches) {
-      setMatches(JSON.parse(loadedMatches));
+      try {
+        const parsedMatches = JSON.parse(loadedMatches);
+        setMatches(Array.isArray(parsedMatches) ? parsedMatches : []);
+      } catch (error) {
+        console.error('Error loading matches:', error);
+        setMatches([]);
+      }
     }
   }, []);
 
@@ -71,45 +77,73 @@ const MatchesManagement = () => {
   };
 
   const handleSave = (match: Match) => {
-    if (match.id) {
-      setMatches(prev => {
-        const updated = prev.map(m => m.id === match.id ? match : m);
-        localStorage.setItem('matches', JSON.stringify(updated));
-        // Trigger storage event
-        window.dispatchEvent(new Event('storage'));
-        return updated;
+    // Validate required fields
+    if (!match.homeTeam || !match.awayTeam || !match.date || !match.time || !match.venue || !match.competition) {
+      toast({
+        title: "Ошибка",
+        description: "Пожалуйста, заполните все обязательные поля",
+        variant: "destructive"
       });
-    } else {
-      setMatches(prev => {
-        const updated = [...prev, { ...match, id: Date.now().toString() }];
-        localStorage.setItem('matches', JSON.stringify(updated));
-        // Trigger storage event
-        window.dispatchEvent(new Event('storage'));
-        return updated;
+      return;
+    }
+
+    try {
+      if (match.id) {
+        setMatches(prev => {
+          const updated = prev.map(m => m.id === match.id ? match : m);
+          localStorage.setItem('matches', JSON.stringify(updated));
+          // Trigger storage event
+          window.dispatchEvent(new Event('storage'));
+          return updated;
+        });
+      } else {
+        setMatches(prev => {
+          const updated = [...prev, { ...match, id: Date.now().toString() }];
+          localStorage.setItem('matches', JSON.stringify(updated));
+          // Trigger storage event
+          window.dispatchEvent(new Event('storage'));
+          return updated;
+        });
+      }
+      setEditMode(false);
+      setCurrentMatch(null);
+      toast({
+        title: "Успешно сохранено",
+        description: "Матч был успешно сохранен",
+      });
+    } catch (error) {
+      console.error('Error saving match:', error);
+      toast({
+        title: "Ошибка",
+        description: "Произошла ошибка при сохранении матча",
+        variant: "destructive"
       });
     }
-    setEditMode(false);
-    setCurrentMatch(null);
-    toast({
-      title: "Успешно сохранено",
-      description: "Матч был успешно сохранен",
-    });
   };
 
   const handleDelete = (id: string) => {
-    setMatches(prev => {
-      const updated = prev.filter(match => match.id !== id);
-      localStorage.setItem('matches', JSON.stringify(updated));
-      // Trigger storage event
-      window.dispatchEvent(new Event('storage'));
-      return updated;
-    });
-    setConfirmDelete(null);
-    toast({
-      title: "Удалено",
-      description: "Матч был успешно удален",
-      variant: "destructive"
-    });
+    try {
+      setMatches(prev => {
+        const updated = prev.filter(match => match.id !== id);
+        localStorage.setItem('matches', JSON.stringify(updated));
+        // Trigger storage event
+        window.dispatchEvent(new Event('storage'));
+        return updated;
+      });
+      setConfirmDelete(null);
+      toast({
+        title: "Удалено",
+        description: "Матч был успешно удален",
+        variant: "destructive"
+      });
+    } catch (error) {
+      console.error('Error deleting match:', error);
+      toast({
+        title: "Ошибка",
+        description: "Произошла ошибка при удалении матча",
+        variant: "destructive"
+      });
+    }
   };
 
   return (

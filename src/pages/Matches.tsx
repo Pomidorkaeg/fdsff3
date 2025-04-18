@@ -28,9 +28,22 @@ const Matches = () => {
   // Load matches from localStorage and listen for changes
   useEffect(() => {
     const loadMatches = () => {
-      const loadedMatches = localStorage.getItem('matches');
-      if (loadedMatches) {
-        setMatches(JSON.parse(loadedMatches));
+      try {
+        const loadedMatches = localStorage.getItem('matches');
+        if (loadedMatches) {
+          const parsedMatches = JSON.parse(loadedMatches);
+          if (Array.isArray(parsedMatches)) {
+            setMatches(parsedMatches);
+          } else {
+            console.error('Invalid matches data format');
+            setMatches([]);
+          }
+        } else {
+          setMatches([]);
+        }
+      } catch (error) {
+        console.error('Error loading matches:', error);
+        setMatches([]);
       }
     };
 
