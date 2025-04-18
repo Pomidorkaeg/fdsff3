@@ -38,17 +38,19 @@ const Index = () => {
       
       <main className="flex-grow page-transition">
         {/* Hero and Matches Section */}
-        <div className="relative">
+        <div className="relative min-h-screen">
           <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
             style={{
-              backgroundImage: 'url(/lovable-uploads/382be63e-ead7-422c-b229-31831c415198.png)'
+              backgroundImage: 'url(https://github.com/Pomidorkaeg/photo/blob/main/382be63e-ead7-422c-b229-31831c415198.png?raw=true)',
+              height: '100vh',
+              width: '100%'
             }}
           ></div>
-          <div className="absolute inset-0 bg-black/60 z-10"></div>
-          <div className="relative z-20">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center min-h-[600px]">
+          <div className="absolute inset-0 bg-black/60"></div>
+          <div className="relative h-full">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center h-screen">
                 <div className="text-white">
                   <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
                     Добро пожаловать в ФК "Сибирь"
