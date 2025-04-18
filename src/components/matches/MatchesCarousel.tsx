@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Calendar, Trophy } from 'lucide-react';
@@ -8,17 +8,32 @@ import { Match } from '@/hooks/useMatches';
 const MatchesCarousel: React.FC = () => {
   const { matches } = useMatches();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  
+  useEffect(() => {
+    if (!isAutoPlaying || matches.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) => 
+        prevIndex === matches.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [matches.length, isAutoPlaying]);
   
   const nextMatch = () => {
     setCurrentIndex((prevIndex) => 
       prevIndex === matches.length - 1 ? 0 : prevIndex + 1
     );
+    setIsAutoPlaying(false);
   };
   
   const prevMatch = () => {
     setCurrentIndex((prevIndex) => 
       prevIndex === 0 ? matches.length - 1 : prevIndex - 1
     );
+    setIsAutoPlaying(false);
   };
   
   if (matches.length === 0) {
@@ -106,7 +121,10 @@ const MatchesCarousel: React.FC = () => {
           {matches.map((_, index) => (
             <button
               key={index}
-              onClick={() => setCurrentIndex(index)}
+              onClick={() => {
+                setCurrentIndex(index);
+                setIsAutoPlaying(false);
+              }}
               className={`h-2 w-2 rounded-full transition-colors ${
                 index === currentIndex ? 'bg-fc-green' : 'bg-gray-300'
               }`}
