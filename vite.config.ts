@@ -14,12 +14,12 @@ export default defineConfig({
   build: {
     outDir: "dist",
     assetsDir: "assets",
-    sourcemap: true,
+    sourcemap: process.env.VITE_HIDE_SOURCE !== 'true',
     minify: 'terser',
     terserOptions: {
       compress: {
-        drop_console: false,
-        drop_debugger: false
+        drop_console: process.env.NODE_ENV === 'production',
+        drop_debugger: true
       }
     },
     rollupOptions: {
@@ -35,7 +35,13 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
-    strictPort: true
+    strictPort: true,
+    headers: {
+      'X-Content-Type-Options': 'nosniff',
+      'X-Frame-Options': 'DENY',
+      'X-XSS-Protection': '1; mode=block',
+      'Referrer-Policy': 'strict-origin-when-cross-origin',
+    },
   },
   preview: {
     port: 5173,
