@@ -39,7 +39,13 @@ const Index = () => {
       <main className="flex-grow page-transition">
         {/* Hero and Matches Section */}
         <div className="relative">
-          <div className="absolute inset-0 bg-black/50 z-10"></div>
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat z-0"
+            style={{
+              backgroundImage: 'url(/lovable-uploads/382be63e-ead7-422c-b229-31831c415198.png)'
+            }}
+          ></div>
+          <div className="absolute inset-0 bg-black/60 z-10"></div>
           <div className="relative z-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center min-h-[600px]">
