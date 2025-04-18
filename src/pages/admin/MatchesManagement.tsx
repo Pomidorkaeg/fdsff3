@@ -75,12 +75,16 @@ const MatchesManagement = () => {
       setMatches(prev => {
         const updated = prev.map(m => m.id === match.id ? match : m);
         localStorage.setItem('matches', JSON.stringify(updated));
+        // Trigger storage event
+        window.dispatchEvent(new Event('storage'));
         return updated;
       });
     } else {
       setMatches(prev => {
         const updated = [...prev, { ...match, id: Date.now().toString() }];
         localStorage.setItem('matches', JSON.stringify(updated));
+        // Trigger storage event
+        window.dispatchEvent(new Event('storage'));
         return updated;
       });
     }
@@ -96,6 +100,8 @@ const MatchesManagement = () => {
     setMatches(prev => {
       const updated = prev.filter(match => match.id !== id);
       localStorage.setItem('matches', JSON.stringify(updated));
+      // Trigger storage event
+      window.dispatchEvent(new Event('storage'));
       return updated;
     });
     setConfirmDelete(null);

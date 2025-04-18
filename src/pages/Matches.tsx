@@ -25,12 +25,27 @@ const Matches = () => {
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
   const [matches, setMatches] = useState<Match[]>([]);
   
-  // Load matches from localStorage
+  // Load matches from localStorage and listen for changes
   useEffect(() => {
-    const loadedMatches = localStorage.getItem('matches');
-    if (loadedMatches) {
-      setMatches(JSON.parse(loadedMatches));
-    }
+    const loadMatches = () => {
+      const loadedMatches = localStorage.getItem('matches');
+      if (loadedMatches) {
+        setMatches(JSON.parse(loadedMatches));
+      }
+    };
+
+    // Load initial matches
+    loadMatches();
+
+    // Listen for storage changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'matches') {
+        loadMatches();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
   
   // Filter matches based on status and month
