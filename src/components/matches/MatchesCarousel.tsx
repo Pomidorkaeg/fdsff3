@@ -10,33 +10,44 @@ const MatchesCarousel: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [direction, setDirection] = useState<'left' | 'right'>('right');
+  const [isAnimating, setIsAnimating] = useState(false);
   
   useEffect(() => {
     if (!isAutoPlaying || matches.length <= 1) return;
     
     const interval = setInterval(() => {
       setDirection('right');
-      setCurrentIndex((prevIndex) => 
-        prevIndex === matches.length - 1 ? 0 : prevIndex + 1
-      );
+      handleSlideChange('right');
     }, 5000);
     
     return () => clearInterval(interval);
   }, [matches.length, isAutoPlaying]);
+
+  const handleSlideChange = (newDirection: 'left' | 'right') => {
+    if (isAnimating) return;
+    
+    setIsAnimating(true);
+    setDirection(newDirection);
+    
+    setTimeout(() => {
+      setCurrentIndex((prevIndex) => {
+        if (newDirection === 'right') {
+          return prevIndex === matches.length - 1 ? 0 : prevIndex + 1;
+        } else {
+          return prevIndex === 0 ? matches.length - 1 : prevIndex - 1;
+        }
+      });
+      setTimeout(() => setIsAnimating(false), 500);
+    }, 250);
+  };
   
   const nextMatch = () => {
-    setDirection('right');
-    setCurrentIndex((prevIndex) => 
-      prevIndex === matches.length - 1 ? 0 : prevIndex + 1
-    );
+    handleSlideChange('right');
     setIsAutoPlaying(false);
   };
   
   const prevMatch = () => {
-    setDirection('left');
-    setCurrentIndex((prevIndex) => 
-      prevIndex === 0 ? matches.length - 1 : prevIndex - 1
-    );
+    handleSlideChange('left');
     setIsAutoPlaying(false);
   };
   
@@ -53,12 +64,11 @@ const MatchesCarousel: React.FC = () => {
   return (
     <div className="relative overflow-hidden">
       <Card 
-        className={`p-6 transition-transform duration-500 ease-in-out transform ${
-          direction === 'right' ? 'slide-right' : 'slide-left'
+        className={`p-6 transition-all duration-500 ease-out transform ${
+          isAnimating && direction === 'right' ? 'translate-x-full opacity-0 scale-95' :
+          isAnimating && direction === 'left' ? '-translate-x-full opacity-0 scale-95' :
+          'translate-x-0 opacity-100 scale-100'
         }`}
-        style={{
-          animation: `slide-${direction} 0.5s ease-in-out`
-        }}
       >
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
@@ -83,7 +93,8 @@ const MatchesCarousel: React.FC = () => {
                 variant="outline"
                 size="icon"
                 onClick={prevMatch}
-                className="h-8 w-8 transition-transform hover:scale-105"
+                disabled={isAnimating}
+                className="h-8 w-8 transition-all duration-300 hover:scale-110 hover:bg-fc-green hover:text-white active:scale-95"
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
@@ -91,7 +102,8 @@ const MatchesCarousel: React.FC = () => {
                 variant="outline"
                 size="icon"
                 onClick={nextMatch}
-                className="h-8 w-8 transition-transform hover:scale-105"
+                disabled={isAnimating}
+                className="h-8 w-8 transition-all duration-300 hover:scale-110 hover:bg-fc-green hover:text-white active:scale-95"
               >
                 <ChevronRight className="h-4 w-4" />
               </Button>
@@ -132,50 +144,21 @@ const MatchesCarousel: React.FC = () => {
           {matches.map((_, index) => (
             <button
               key={index}
+              disabled={isAnimating}
               onClick={() => {
-                setDirection(index > currentIndex ? 'right' : 'left');
-                setCurrentIndex(index);
+                if (index === currentIndex) return;
+                handleSlideChange(index > currentIndex ? 'right' : 'left');
                 setIsAutoPlaying(false);
               }}
               className={`h-2 w-2 rounded-full transition-all duration-300 ${
-                index === currentIndex ? 'bg-fc-green scale-125' : 'bg-gray-300 hover:scale-110'
+                index === currentIndex 
+                  ? 'bg-fc-green w-4 scale-110' 
+                  : 'bg-gray-300 hover:bg-fc-green/50 hover:scale-110'
               }`}
             />
           ))}
         </div>
       )}
-
-      <style>{`
-        @keyframes slide-right {
-          from {
-            transform: translateX(-100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        
-        @keyframes slide-left {
-          from {
-            transform: translateX(100%);
-            opacity: 0;
-          }
-          to {
-            transform: translateX(0);
-            opacity: 1;
-          }
-        }
-        
-        .slide-right {
-          animation: slide-right 0.5s ease-in-out;
-        }
-        
-        .slide-left {
-          animation: slide-left 0.5s ease-in-out;
-        }
-      `}</style>
     </div>
   );
 };
