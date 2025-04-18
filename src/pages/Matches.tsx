@@ -30,8 +30,12 @@ const Matches = () => {
     const loadMatches = () => {
       try {
         const loadedMatches = localStorage.getItem('matches');
+        console.log('Loading matches in Matches component:', loadedMatches);
+        
         if (loadedMatches) {
           const parsedMatches = JSON.parse(loadedMatches);
+          console.log('Parsed matches in Matches component:', parsedMatches);
+          
           if (Array.isArray(parsedMatches)) {
             setMatches(parsedMatches);
           } else {
@@ -39,6 +43,7 @@ const Matches = () => {
             setMatches([]);
           }
         } else {
+          console.log('No matches found in localStorage');
           setMatches([]);
         }
       } catch (error) {
@@ -52,6 +57,7 @@ const Matches = () => {
 
     // Listen for storage changes
     const handleStorageChange = (e: StorageEvent) => {
+      console.log('Storage event detected:', e);
       if (e.key === 'matches') {
         loadMatches();
       }

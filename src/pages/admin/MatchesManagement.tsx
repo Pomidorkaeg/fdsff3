@@ -45,9 +45,11 @@ const MatchesManagement = () => {
   // Load matches from storage on component mount
   React.useEffect(() => {
     const loadedMatches = localStorage.getItem('matches');
+    console.log('Loading matches from localStorage:', loadedMatches);
     if (loadedMatches) {
       try {
         const parsedMatches = JSON.parse(loadedMatches);
+        console.log('Parsed matches:', parsedMatches);
         setMatches(Array.isArray(parsedMatches) ? parsedMatches : []);
       } catch (error) {
         console.error('Error loading matches:', error);
@@ -77,6 +79,8 @@ const MatchesManagement = () => {
   };
 
   const handleSave = (match: Match) => {
+    console.log('Saving match:', match);
+    
     // Validate required fields
     if (!match.homeTeam || !match.awayTeam || !match.date || !match.time || !match.venue || !match.competition) {
       toast({
@@ -88,25 +92,32 @@ const MatchesManagement = () => {
     }
 
     try {
+      let updatedMatches: Match[];
+      
       if (match.id) {
-        setMatches(prev => {
-          const updated = prev.map(m => m.id === match.id ? match : m);
-          localStorage.setItem('matches', JSON.stringify(updated));
-          // Trigger storage event
-          window.dispatchEvent(new Event('storage'));
-          return updated;
-        });
+        // Update existing match
+        updatedMatches = matches.map(m => m.id === match.id ? match : m);
       } else {
-        setMatches(prev => {
-          const updated = [...prev, { ...match, id: Date.now().toString() }];
-          localStorage.setItem('matches', JSON.stringify(updated));
-          // Trigger storage event
-          window.dispatchEvent(new Event('storage'));
-          return updated;
-        });
+        // Add new match
+        const newMatch = { ...match, id: Date.now().toString() };
+        updatedMatches = [...matches, newMatch];
       }
+
+      console.log('Updated matches array:', updatedMatches);
+      
+      // Save to localStorage
+      localStorage.setItem('matches', JSON.stringify(updatedMatches));
+      console.log('Saved to localStorage');
+      
+      // Update state
+      setMatches(updatedMatches);
+      
+      // Trigger storage event
+      window.dispatchEvent(new Event('storage'));
+      
       setEditMode(false);
       setCurrentMatch(null);
+      
       toast({
         title: "Успешно сохранено",
         description: "Матч был успешно сохранен",
