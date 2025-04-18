@@ -37,33 +37,35 @@ const Index = () => {
       <Navbar />
       
       <main className="flex-grow page-transition">
-        <Hero />
-        
-        {/* Matches Section */}
-        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">БЛИЖАЙШИЕ МАТЧИ</h2>
-              <div className="w-24 h-1 bg-fc-yellow mx-auto mb-6"></div>
-              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                Следите за расписанием матчей и результатами
-              </p>
-            </div>
-            
-            <div className="max-w-3xl mx-auto">
-              <MatchesCarousel />
-            </div>
-            
-            <div className="mt-10 text-center">
-              <Button asChild variant="subtle" size="lg">
-                <Link to="/matches" className="inline-flex items-center">
-                  Все матчи
-                  <ArrowRight className="ml-2" />
-                </Link>
-              </Button>
+        {/* Hero and Matches Section */}
+        <div className="relative">
+          <div className="absolute inset-0 bg-black/50 z-10"></div>
+          <div className="relative z-20">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center min-h-[600px]">
+                <div className="text-white">
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+                    Добро пожаловать в ФК "Сибирь"
+                  </h1>
+                  <p className="text-xl md:text-2xl text-white/90 mb-8">
+                    Официальный сайт футбольного клуба
+                  </p>
+                  <div className="flex gap-4">
+                    <Button asChild size="lg" className="bg-fc-green hover:bg-fc-darkGreen">
+                      <Link to="/team">О команде</Link>
+                    </Button>
+                    <Button asChild variant="outline" size="lg" className="border-white text-white hover:bg-white/10">
+                      <Link to="/matches">Расписание матчей</Link>
+                    </Button>
+                  </div>
+                </div>
+                <div className="lg:pl-8">
+                  <MatchesCarousel />
+                </div>
+              </div>
             </div>
           </div>
-        </section>
+        </div>
         
         {/* Featured Tournament Table Section */}
         <section className="pt-32 px-4 sm:px-6 lg:px-8 bg-white">
