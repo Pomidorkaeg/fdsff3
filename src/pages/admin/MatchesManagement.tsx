@@ -1,29 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Calendar, Trophy, Edit, Trash, Clock, MapPin, AlertCircle } from 'lucide-react';
-import { toast } from '@/components/ui/use-toast';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { useMatches, Match } from '@/hooks/useMatches';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/components/ui/use-toast';
+import { useMatches } from '@/hooks/useMatches';
+import { Match, MatchStatus } from '@/hooks/useMatches';
+import { addMatch, updateMatch, deleteMatch } from '@/utils/api/matches';
+import { Calendar, Clock, MapPin, Trophy, Trash2, Edit2, Plus } from 'lucide-react';
 
 const MatchesManagement: React.FC = () => {
-  const { matches, addMatch, updateMatch, deleteMatch, isLoading, error } = useMatches();
+  const { matches, isLoading, error } = useMatches();
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingMatch, setEditingMatch] = useState<Match | null>(null);
   const [formData, setFormData] = useState<Partial<Match>>({
     homeTeam: '',
     awayTeam: '',
@@ -31,16 +20,14 @@ const MatchesManagement: React.FC = () => {
     time: '',
     venue: '',
     competition: '',
-    status: 'scheduled',
+    status: 'scheduled' as MatchStatus,
     score: { home: 0, away: 0 }
   });
+  const { toast } = useToast();
 
   useEffect(() => {
-    if (editingMatch) {
-      setFormData({
-        ...editingMatch,
-        score: editingMatch.score || { home: 0, away: 0 }
-      });
+    if (selectedMatch) {
+      setFormData(selectedMatch);
     } else {
       setFormData({
         homeTeam: '',
@@ -49,142 +36,67 @@ const MatchesManagement: React.FC = () => {
         time: '',
         venue: '',
         competition: '',
-        status: 'scheduled',
+        status: 'scheduled' as MatchStatus,
         score: { home: 0, away: 0 }
       });
     }
-  }, [editingMatch]);
-
-  const handleOpenDialog = (match?: Match) => {
-    if (match) {
-      setEditingMatch(match);
-    } else {
-      setEditingMatch(null);
-    }
-    setIsDialogOpen(true);
-  };
-
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-    setEditingMatch(null);
-  };
+  }, [selectedMatch]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleStatusChange = (value: string) => {
-    setFormData(prev => ({ ...prev, status: value as Match['status'] }));
-  };
-
-  const handleScoreChange = (e: React.ChangeEvent<HTMLInputElement>, team: 'home' | 'away') => {
-    const value = parseInt(e.target.value) || 0;
+  const handleScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      score: { ...(prev.score || { home: 0, away: 0 }), [team]: value }
+      score: { ...prev.score!, [name]: parseInt(value) || 0 }
     }));
   };
 
-  const validateForm = () => {
-    if (!formData.homeTeam || !formData.awayTeam || !formData.date || !formData.time || !formData.venue || !formData.competition) {
-      toast({
-        title: "Ошибка",
-        description: "Пожалуйста, заполните все обязательные поля",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    // Validate date format (DD.MM.YYYY)
-    const dateRegex = /^\d{2}\.\d{2}\.\d{4}$/;
-    if (!dateRegex.test(formData.date)) {
-      toast({
-        title: "Ошибка",
-        description: "Дата должна быть в формате ДД.ММ.ГГГГ",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    // Validate time format (HH:MM)
-    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    if (!timeRegex.test(formData.time)) {
-      toast({
-        title: "Ошибка",
-        description: "Время должно быть в формате ЧЧ:ММ",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    return true;
+  const handleStatusChange = (value: string) => {
+    setFormData(prev => ({ ...prev, status: value as MatchStatus }));
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-
+  const handleSave = async () => {
     try {
-      const matchData: Match = {
-        id: editingMatch?.id || Date.now().toString(),
-        homeTeam: formData.homeTeam,
-        awayTeam: formData.awayTeam,
-        date: formData.date,
-        time: formData.time,
-        venue: formData.venue,
-        competition: formData.competition,
-        status: formData.status as Match['status'],
-        score: formData.status === 'finished' ? formData.score : undefined
-      };
-
-      if (editingMatch) {
-        await updateMatch(matchData);
+      if (selectedMatch) {
+        await updateMatch({ ...selectedMatch, ...formData });
         toast({
-          title: "Успех",
-          description: "Матч успешно обновлен",
+          title: 'Матч обновлен',
+          description: 'Изменения успешно сохранены',
         });
       } else {
-        await addMatch(matchData);
+        await addMatch(formData as Match);
         toast({
-          title: "Успех",
-          description: "Матч успешно добавлен",
+          title: 'Матч добавлен',
+          description: 'Новый матч успешно создан',
         });
       }
-      handleCloseDialog();
+      setIsDialogOpen(false);
+      setSelectedMatch(null);
     } catch (error) {
-      console.error('Error saving match:', error);
       toast({
-        title: "Ошибка",
-        description: "Произошла ошибка при сохранении матча",
-        variant: "destructive",
+        title: 'Ошибка',
+        description: 'Не удалось сохранить матч',
+        variant: 'destructive',
       });
     }
   };
 
   const handleDelete = async (matchId: string) => {
     try {
-      const matchToDelete = matches.find(m => m.id === matchId);
-      if (!matchToDelete) {
-        toast({
-          title: "Ошибка",
-          description: "Матч не найден",
-          variant: "destructive",
-        });
-        return;
-      }
-
       await deleteMatch(matchId);
       toast({
-        title: "Успех",
-        description: "Матч успешно удален",
+        title: 'Матч удален',
+        description: 'Матч успешно удален',
       });
     } catch (error) {
-      console.error('Error deleting match:', error);
       toast({
-        title: "Ошибка",
-        description: "Произошла ошибка при удалении матча",
-        variant: "destructive",
+        title: 'Ошибка',
+        description: 'Не удалось удалить матч',
+        variant: 'destructive',
       });
     }
   };
@@ -199,26 +111,24 @@ const MatchesManagement: React.FC = () => {
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-center">
-        <AlertCircle className="h-8 w-8 text-red-500 mb-2" />
-        <p className="text-red-500">{error}</p>
-        <Button
-          variant="outline"
-          className="mt-4"
-          onClick={() => window.location.reload()}
-        >
-          Обновить страницу
-        </Button>
+      <div className="text-center text-red-500 p-4">
+        <p>Ошибка загрузки матчей: {error}</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Управление матчами</h1>
-        <Button onClick={() => handleOpenDialog()}>
-          <Plus className="h-4 w-4 mr-2" />
+    <div className="space-y-4">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold">Управление матчами</h2>
+        <Button
+          onClick={() => {
+            setSelectedMatch(null);
+            setIsDialogOpen(true);
+          }}
+          className="bg-fc-green hover:bg-fc-green/90"
+        >
+          <Plus className="w-4 h-4 mr-2" />
           Добавить матч
         </Button>
       </div>
@@ -226,40 +136,68 @@ const MatchesManagement: React.FC = () => {
       <div className="grid gap-4">
         {matches.map((match) => (
           <Card key={match.id} className="p-4">
-            <div className="flex justify-between items-center">
-              <div>
-                <h3 className="font-semibold">{match.homeTeam} vs {match.awayTeam}</h3>
-                <p className="text-sm text-gray-500">
-                  <Calendar className="inline-block h-4 w-4 mr-1" />
-                  {match.date} <Clock className="inline-block h-4 w-4 mr-1" />
-                  {match.time}
-                </p>
-                <p className="text-sm text-gray-500">
-                  <Trophy className="inline-block h-4 w-4 mr-1" />
-                  {match.competition}
-                  <MapPin className="inline-block h-4 w-4 mr-1 ml-2" />
-                  {match.venue}
-                </p>
-                {match.status !== 'scheduled' && match.score && (
-                  <p className="text-sm font-semibold mt-1">
-                    Счет: {match.score.home} - {match.score.away}
-                  </p>
-                )}
+            <div className="flex justify-between items-start">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                    match.status === 'live' ? 'bg-fc-green text-white animate-pulse' :
+                    match.status === 'finished' ? 'bg-gray-200 text-gray-700' :
+                    'bg-fc-yellow text-gray-900'
+                  }`}>
+                    {match.status === 'live' ? 'Идет матч' :
+                     match.status === 'finished' ? 'Завершен' :
+                     'Запланирован'}
+                  </span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="text-lg font-semibold">{match.homeTeam}</div>
+                  {match.status !== 'scheduled' && match.score && (
+                    <div className="text-xl font-bold">
+                      {match.score.home} - {match.score.away}
+                    </div>
+                  )}
+                  {match.status === 'scheduled' && (
+                    <div className="text-xl font-bold">vs</div>
+                  )}
+                  <div className="text-lg font-semibold">{match.awayTeam}</div>
+                </div>
+                <div className="flex items-center gap-4 text-sm text-gray-500">
+                  <div className="flex items-center gap-1">
+                    <Calendar className="w-4 h-4" />
+                    <span>{match.date}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" />
+                    <span>{match.time}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-4 h-4" />
+                    <span>{match.venue}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Trophy className="w-4 h-4" />
+                    <span>{match.competition}</span>
+                  </div>
+                </div>
               </div>
               <div className="flex gap-2">
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="icon"
-                  onClick={() => handleOpenDialog(match)}
+                  onClick={() => {
+                    setSelectedMatch(match);
+                    setIsDialogOpen(true);
+                  }}
                 >
-                  <Edit className="h-4 w-4" />
+                  <Edit2 className="w-4 h-4" />
                 </Button>
                 <Button
-                  variant="ghost"
+                  variant="outline"
                   size="icon"
                   onClick={() => handleDelete(match.id)}
+                  className="text-red-500 hover:text-red-600"
                 >
-                  <Trash className="h-4 w-4" />
+                  <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
             </div>
@@ -267,104 +205,78 @@ const MatchesManagement: React.FC = () => {
         ))}
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>
-              {editingMatch ? 'Редактировать матч' : 'Добавить матч'}
-            </DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSave}>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="homeTeam" className="text-right">
-                  Хозяева
-                </label>
-                <Input
-                  id="homeTeam"
-                  name="homeTeam"
-                  value={formData.homeTeam}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  required
-                />
+      {isDialogOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+          <Card className="w-full max-w-md p-6">
+            <h3 className="text-xl font-bold mb-4">
+              {selectedMatch ? 'Редактировать матч' : 'Добавить матч'}
+            </h3>
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Хозяева</label>
+                  <Input
+                    name="homeTeam"
+                    value={formData.homeTeam}
+                    onChange={handleInputChange}
+                    placeholder="Название команды"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Гости</label>
+                  <Input
+                    name="awayTeam"
+                    value={formData.awayTeam}
+                    onChange={handleInputChange}
+                    placeholder="Название команды"
+                  />
+                </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="awayTeam" className="text-right">
-                  Гости
-                </label>
-                <Input
-                  id="awayTeam"
-                  name="awayTeam"
-                  value={formData.awayTeam}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium">Дата</label>
+                  <Input
+                    name="date"
+                    value={formData.date}
+                    onChange={handleInputChange}
+                    placeholder="ДД.ММ.ГГГГ"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Время</label>
+                  <Input
+                    name="time"
+                    value={formData.time}
+                    onChange={handleInputChange}
+                    placeholder="ЧЧ:ММ"
+                  />
+                </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="date" className="text-right">
-                  Дата
-                </label>
+              <div>
+                <label className="text-sm font-medium">Стадион</label>
                 <Input
-                  id="date"
-                  name="date"
-                  value={formData.date}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  placeholder="ДД.ММ.ГГГГ"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="time" className="text-right">
-                  Время
-                </label>
-                <Input
-                  id="time"
-                  name="time"
-                  value={formData.time}
-                  onChange={handleInputChange}
-                  className="col-span-3"
-                  placeholder="ЧЧ:ММ"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="venue" className="text-right">
-                  Стадион
-                </label>
-                <Input
-                  id="venue"
                   name="venue"
                   value={formData.venue}
                   onChange={handleInputChange}
-                  className="col-span-3"
-                  required
+                  placeholder="Название стадиона"
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="competition" className="text-right">
-                  Турнир
-                </label>
+              <div>
+                <label className="text-sm font-medium">Турнир</label>
                 <Input
-                  id="competition"
                   name="competition"
                   value={formData.competition}
                   onChange={handleInputChange}
-                  className="col-span-3"
-                  required
+                  placeholder="Название турнира"
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="status" className="text-right">
-                  Статус
-                </label>
+              <div>
+                <label className="text-sm font-medium">Статус</label>
                 <Select
                   value={formData.status}
                   onValueChange={handleStatusChange}
                 >
-                  <SelectTrigger className="col-span-3">
+                  <SelectTrigger>
                     <SelectValue placeholder="Выберите статус" />
                   </SelectTrigger>
                   <SelectContent>
@@ -374,48 +286,51 @@ const MatchesManagement: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
-              {formData.status !== 'scheduled' && (
-                <>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <label htmlFor="homeScore" className="text-right">
-                      Счет хозяев
-                    </label>
+              {(formData.status === 'live' || formData.status === 'finished') && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium">Счет хозяев</label>
                     <Input
-                      id="homeScore"
+                      name="home"
                       type="number"
+                      value={formData.score?.home}
+                      onChange={handleScoreChange}
                       min="0"
-                      value={formData.score?.home || 0}
-                      onChange={(e) => handleScoreChange(e, 'home')}
-                      className="col-span-3"
                     />
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <label htmlFor="awayScore" className="text-right">
-                      Счет гостей
-                    </label>
+                  <div>
+                    <label className="text-sm font-medium">Счет гостей</label>
                     <Input
-                      id="awayScore"
+                      name="away"
                       type="number"
+                      value={formData.score?.away}
+                      onChange={handleScoreChange}
                       min="0"
-                      value={formData.score?.away || 0}
-                      onChange={(e) => handleScoreChange(e, 'away')}
-                      className="col-span-3"
                     />
                   </div>
-                </>
+                </div>
               )}
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsDialogOpen(false);
+                    setSelectedMatch(null);
+                  }}
+                >
+                  Отмена
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  className="bg-fc-green hover:bg-fc-green/90"
+                >
+                  Сохранить
+                </Button>
+              </div>
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={handleCloseDialog}>
-                Отмена
-              </Button>
-              <Button type="submit">
-                {editingMatch ? 'Сохранить' : 'Добавить'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
