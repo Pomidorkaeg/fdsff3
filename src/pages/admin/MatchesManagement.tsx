@@ -86,7 +86,7 @@ const MatchesManagement: React.FC = () => {
     }));
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (!formData.homeTeam || !formData.awayTeam || !formData.date || !formData.time || !formData.venue || !formData.competition) {
@@ -111,13 +111,13 @@ const MatchesManagement: React.FC = () => {
       };
 
       if (editingMatch) {
-        updateMatch(matchData);
+        await updateMatch(matchData);
         toast({
           title: "Успех",
           description: "Матч успешно обновлен",
         });
       } else {
-        addMatch(matchData);
+        await addMatch(matchData);
         toast({
           title: "Успех",
           description: "Матч успешно добавлен",
@@ -134,9 +134,9 @@ const MatchesManagement: React.FC = () => {
     }
   };
 
-  const handleDelete = (matchId: string) => {
+  const handleDelete = async (matchId: string) => {
     try {
-      deleteMatch(matchId);
+      await deleteMatch(matchId);
       toast({
         title: "Успех",
         description: "Матч успешно удален",
@@ -182,6 +182,11 @@ const MatchesManagement: React.FC = () => {
                   <MapPin className="inline-block h-4 w-4 mr-1 ml-2" />
                   {match.venue}
                 </p>
+                {match.status !== 'scheduled' && match.score && (
+                  <p className="text-sm font-semibold mt-1">
+                    Счет: {match.score.home} - {match.score.away}
+                  </p>
+                )}
               </div>
               <div className="flex gap-2">
                 <Button
@@ -205,115 +210,144 @@ const MatchesManagement: React.FC = () => {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>
               {editingMatch ? 'Редактировать матч' : 'Добавить матч'}
             </DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleSave} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="homeTeam" className="text-sm font-medium">Хозяева</label>
-              <Input
-                id="homeTeam"
-                name="homeTeam"
-                value={formData.homeTeam}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="awayTeam" className="text-sm font-medium">Гости</label>
-              <Input
-                id="awayTeam"
-                name="awayTeam"
-                value={formData.awayTeam}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="date" className="text-sm font-medium">Дата</label>
-              <Input
-                id="date"
-                name="date"
-                type="date"
-                value={formData.date}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="time" className="text-sm font-medium">Время</label>
-              <Input
-                id="time"
-                name="time"
-                type="time"
-                value={formData.time}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="venue" className="text-sm font-medium">Место проведения</label>
-              <Input
-                id="venue"
-                name="venue"
-                value={formData.venue}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="competition" className="text-sm font-medium">Соревнование</label>
-              <Input
-                id="competition"
-                name="competition"
-                value={formData.competition}
-                onChange={handleInputChange}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <label htmlFor="status" className="text-sm font-medium">Статус</label>
-              <Select
-                value={formData.status}
-                onValueChange={handleStatusChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Выберите статус" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="scheduled">Запланирован</SelectItem>
-                  <SelectItem value="live">В прямом эфире</SelectItem>
-                  <SelectItem value="finished">Завершен</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            {formData.status === 'finished' && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Счет</label>
-                <div className="flex gap-2">
-                  <Input
-                    type="number"
-                    min="0"
-                    value={formData.score?.home || 0}
-                    onChange={(e) => handleScoreChange(e, 'home')}
-                    required
-                  />
-                  <span className="flex items-center">-</span>
-                  <Input
-                    type="number"
-                    min="0"
-                    value={formData.score?.away || 0}
-                    onChange={(e) => handleScoreChange(e, 'away')}
-                    required
-                  />
-                </div>
+          <form onSubmit={handleSave}>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label htmlFor="homeTeam" className="text-right">
+                  Хозяева
+                </label>
+                <Input
+                  id="homeTeam"
+                  name="homeTeam"
+                  value={formData.homeTeam}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
               </div>
-            )}
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label htmlFor="awayTeam" className="text-right">
+                  Гости
+                </label>
+                <Input
+                  id="awayTeam"
+                  name="awayTeam"
+                  value={formData.awayTeam}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label htmlFor="date" className="text-right">
+                  Дата
+                </label>
+                <Input
+                  id="date"
+                  name="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label htmlFor="time" className="text-right">
+                  Время
+                </label>
+                <Input
+                  id="time"
+                  name="time"
+                  type="time"
+                  value={formData.time}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label htmlFor="venue" className="text-right">
+                  Стадион
+                </label>
+                <Input
+                  id="venue"
+                  name="venue"
+                  value={formData.venue}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label htmlFor="competition" className="text-right">
+                  Турнир
+                </label>
+                <Input
+                  id="competition"
+                  name="competition"
+                  value={formData.competition}
+                  onChange={handleInputChange}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label htmlFor="status" className="text-right">
+                  Статус
+                </label>
+                <Select
+                  value={formData.status}
+                  onValueChange={handleStatusChange}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Выберите статус" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="scheduled">Запланирован</SelectItem>
+                    <SelectItem value="live">Идет матч</SelectItem>
+                    <SelectItem value="finished">Завершен</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              {formData.status !== 'scheduled' && (
+                <>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <label htmlFor="homeScore" className="text-right">
+                      Счет хозяев
+                    </label>
+                    <Input
+                      id="homeScore"
+                      type="number"
+                      min="0"
+                      value={formData.score?.home || 0}
+                      onChange={(e) => handleScoreChange(e, 'home')}
+                      className="col-span-3"
+                    />
+                  </div>
+                  <div className="grid grid-cols-4 items-center gap-4">
+                    <label htmlFor="awayScore" className="text-right">
+                      Счет гостей
+                    </label>
+                    <Input
+                      id="awayScore"
+                      type="number"
+                      min="0"
+                      value={formData.score?.away || 0}
+                      onChange={(e) => handleScoreChange(e, 'away')}
+                      className="col-span-3"
+                    />
+                  </div>
+                </>
+              )}
+            </div>
             <DialogFooter>
-              <Button type="submit">Сохранить</Button>
+              <Button type="button" variant="outline" onClick={handleCloseDialog}>
+                Отмена
+              </Button>
+              <Button type="submit">
+                {editingMatch ? 'Сохранить' : 'Добавить'}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
