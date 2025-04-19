@@ -53,7 +53,7 @@ const Index = () => {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center h-screen">
                 <div className="text-white">
                   <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
-                    Добро пожаловать в ФК "Сибирь"
+                    Добро пожаловать в ФК "Гудаута"
                   </h1>
                   <p className="text-xl md:text-2xl text-white/90 mb-8">
                     Официальный сайт футбольного клуба
