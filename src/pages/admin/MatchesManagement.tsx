@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Calendar, Trophy, Pencil, Trash } from 'lucide-react';
+import { Plus, Calendar, Trophy, Edit, Trash, Clock, MapPin } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
@@ -19,9 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useMatches } from '@/hooks/useMatches';
-import { Match } from '@/hooks/useMatches';
+import { useMatches, Match } from '@/hooks/useMatches';
 
 const MatchesManagement: React.FC = () => {
   const { matches, addMatch, updateMatch, deleteMatch, isLoading } = useMatches();
@@ -40,7 +37,10 @@ const MatchesManagement: React.FC = () => {
 
   useEffect(() => {
     if (editingMatch) {
-      setFormData(editingMatch);
+      setFormData({
+        ...editingMatch,
+        score: editingMatch.score || { home: 0, away: 0 }
+      });
     } else {
       setFormData({
         homeTeam: '',
@@ -82,21 +82,38 @@ const MatchesManagement: React.FC = () => {
     const value = parseInt(e.target.value) || 0;
     setFormData(prev => ({
       ...prev,
-      score: { ...prev.score, [team]: value }
+      score: { ...(prev.score || { home: 0, away: 0 }), [team]: value }
     }));
   };
 
   const handleSave = () => {
     try {
+      if (!formData.homeTeam || !formData.awayTeam || !formData.date || !formData.time) {
+        toast({
+          title: "Ошибка",
+          description: "Пожалуйста, заполните все обязательные поля",
+          variant: "destructive",
+        });
+        return;
+      }
+
       if (editingMatch) {
-        const updatedMatch = { ...formData, id: editingMatch.id } as Match;
+        const updatedMatch = { 
+          ...formData, 
+          id: editingMatch.id,
+          score: formData.status === 'scheduled' ? undefined : formData.score
+        } as Match;
         updateMatch(updatedMatch);
         toast({
           title: "Матч обновлен",
           description: "Матч успешно обновлен",
         });
       } else {
-        const newMatch = { ...formData, id: Date.now().toString() } as Match;
+        const newMatch = { 
+          ...formData, 
+          id: Date.now().toString(),
+          score: formData.status === 'scheduled' ? undefined : formData.score
+        } as Match;
         addMatch(newMatch);
         toast({
           title: "Матч добавлен",
@@ -105,6 +122,7 @@ const MatchesManagement: React.FC = () => {
       }
       handleCloseDialog();
     } catch (error) {
+      console.error('Error saving match:', error);
       toast({
         title: "Ошибка",
         description: "Произошла ошибка при сохранении матча",
@@ -121,6 +139,7 @@ const MatchesManagement: React.FC = () => {
         description: "Матч успешно удален",
       });
     } catch (error) {
+      console.error('Error deleting match:', error);
       toast({
         title: "Ошибка",
         description: "Произошла ошибка при удалении матча",
@@ -138,207 +157,157 @@ const MatchesManagement: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-        <h1 className="text-3xl font-bold">Управление матчами</h1>
-        <Button onClick={() => handleOpenDialog()} className="w-full sm:w-auto">
-          <Plus className="h-4 w-4 mr-2" />
+    <div className="container mx-auto py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Управление матчами</h1>
+        <Button onClick={() => setEditingMatch(null)}>
           Добавить матч
         </Button>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-4">
         {matches.map((match) => (
-          <div key={match.id} className="bg-white rounded-lg shadow-sm p-4 sm:p-6">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  match.status === 'live' ? 'bg-fc-green text-white' :
-                  match.status === 'finished' ? 'bg-gray-200 text-gray-700' :
-                  'bg-fc-yellow text-gray-900'
-                }`}>
-                  {match.status === 'live' ? 'Идет матч' :
-                   match.status === 'finished' ? 'Завершен' :
-                   'Запланирован'}
-                </span>
-                <div className="flex items-center gap-2 text-gray-500">
-                  <Calendar className="h-4 w-4" />
-                  <span className="text-sm sm:text-base">{match.date}</span>
-                </div>
-                <div className="flex items-center gap-2 text-gray-500">
-                  <Clock className="h-4 w-4" />
-                  <span className="text-sm sm:text-base">{match.time}</span>
-                </div>
+          <div key={match.id} className="border rounded-lg p-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="font-semibold">{match.homeTeam} vs {match.awayTeam}</h3>
+                <p className="text-sm text-gray-500">
+                  {match.date} {match.time} • {match.venue}
+                </p>
               </div>
               <div className="flex gap-2">
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleOpenDialog(match)}
-                  className="w-full sm:w-auto"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setEditingMatch(match)}
                 >
-                  <Edit2 className="h-4 w-4 mr-2" />
-                  Редактировать
+                  <Edit className="h-4 w-4" />
                 </Button>
                 <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDelete(match.id)}
-                  className="w-full sm:w-auto"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => deleteMatch(match.id)}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Удалить
+                  <Trash className="h-4 w-4" />
                 </Button>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
-              <div className="flex-1 text-center sm:text-left">
-                <div className="text-base sm:text-lg font-semibold">{match.homeTeam}</div>
-              </div>
-              <div className="flex items-center gap-3">
-                {match.status !== 'scheduled' && match.score && (
-                  <div className="text-xl sm:text-2xl font-bold">
-                    {match.score.home} - {match.score.away}
-                  </div>
-                )}
-                {match.status === 'scheduled' && (
-                  <div className="text-lg sm:text-xl font-bold">vs</div>
-                )}
-              </div>
-              <div className="flex-1 text-center sm:text-right">
-                <div className="text-base sm:text-lg font-semibold">{match.awayTeam}</div>
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 mt-4 text-sm text-gray-500">
-              <div className="flex items-center gap-2">
-                <Trophy className="h-4 w-4" />
-                <span className="text-xs sm:text-sm">{match.competition}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                <span className="text-xs sm:text-sm">{match.venue}</span>
               </div>
             </div>
           </div>
         ))}
       </div>
 
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+      <Dialog open={!!editingMatch} onOpenChange={() => setEditingMatch(null)}>
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingMatch ? 'Редактировать матч' : 'Добавить матч'}</DialogTitle>
+            <DialogTitle>
+              {editingMatch?.id ? 'Редактировать матч' : 'Добавить матч'}
+            </DialogTitle>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="homeTeam" className="text-sm font-medium">Хозяева</label>
-                <Input
-                  id="homeTeam"
-                  name="homeTeam"
-                  value={formData.homeTeam}
-                  onChange={handleInputChange}
-                  className="w-full"
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="awayTeam" className="text-sm font-medium">Гости</label>
-                <Input
-                  id="awayTeam"
-                  name="awayTeam"
-                  value={formData.awayTeam}
-                  onChange={handleInputChange}
-                  className="w-full"
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label htmlFor="date" className="text-sm font-medium">Дата</label>
-                <Input
-                  id="date"
-                  name="date"
-                  type="date"
-                  value={formData.date}
-                  onChange={handleInputChange}
-                  className="w-full"
-                />
-              </div>
-              <div className="space-y-2">
-                <label htmlFor="time" className="text-sm font-medium">Время</label>
-                <Input
-                  id="time"
-                  name="time"
-                  type="time"
-                  value={formData.time}
-                  onChange={handleInputChange}
-                  className="w-full"
-                />
-              </div>
+          <form onSubmit={handleSave} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="homeTeam">Хозяева</Label>
+              <Input
+                id="homeTeam"
+                value={formData.homeTeam}
+                onChange={(e) => setFormData({ ...formData, homeTeam: e.target.value })}
+                required
+              />
             </div>
             <div className="space-y-2">
-              <label htmlFor="venue" className="text-sm font-medium">Место проведения</label>
+              <Label htmlFor="awayTeam">Гости</Label>
+              <Input
+                id="awayTeam"
+                value={formData.awayTeam}
+                onChange={(e) => setFormData({ ...formData, awayTeam: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="date">Дата</Label>
+              <Input
+                id="date"
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="time">Время</Label>
+              <Input
+                id="time"
+                type="time"
+                value={formData.time}
+                onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="venue">Место проведения</Label>
               <Input
                 id="venue"
-                name="venue"
                 value={formData.venue}
-                onChange={handleInputChange}
-                className="w-full"
+                onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
+                required
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="competition" className="text-sm font-medium">Турнир</label>
+              <Label htmlFor="competition">Соревнование</Label>
               <Input
                 id="competition"
-                name="competition"
                 value={formData.competition}
-                onChange={handleInputChange}
-                className="w-full"
+                onChange={(e) => setFormData({ ...formData, competition: e.target.value })}
+                required
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="status" className="text-sm font-medium">Статус</label>
-              <Select value={formData.status} onValueChange={handleStatusChange}>
-                <SelectTrigger className="w-full">
+              <Label htmlFor="status">Статус</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value) => setFormData({ ...formData, status: value as Match['status'] })}
+              >
+                <SelectTrigger>
                   <SelectValue placeholder="Выберите статус" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="scheduled">Запланирован</SelectItem>
-                  <SelectItem value="live">Идет матч</SelectItem>
+                  <SelectItem value="live">В прямом эфире</SelectItem>
                   <SelectItem value="finished">Завершен</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            {formData.status !== 'scheduled' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="homeScore" className="text-sm font-medium">Счет хозяев</label>
+            {formData.status === 'finished' && (
+              <div className="space-y-2">
+                <Label>Счет</Label>
+                <div className="flex gap-2">
                   <Input
-                    id="homeScore"
                     type="number"
-                    value={formData.score?.home}
-                    onChange={(e) => handleScoreChange(e, 'home')}
-                    className="w-full"
+                    min="0"
+                    value={formData.score?.home || 0}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      score: { ...formData.score, home: parseInt(e.target.value) }
+                    })}
+                    required
                   />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="awayScore" className="text-sm font-medium">Счет гостей</label>
+                  <span className="flex items-center">-</span>
                   <Input
-                    id="awayScore"
                     type="number"
-                    value={formData.score?.away}
-                    onChange={(e) => handleScoreChange(e, 'away')}
-                    className="w-full"
+                    min="0"
+                    value={formData.score?.away || 0}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      score: { ...formData.score, away: parseInt(e.target.value) }
+                    })}
+                    required
                   />
                 </div>
               </div>
             )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleCloseDialog}>Отмена</Button>
-            <Button onClick={handleSave}>Сохранить</Button>
-          </DialogFooter>
+            <DialogFooter>
+              <Button type="submit">Сохранить</Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

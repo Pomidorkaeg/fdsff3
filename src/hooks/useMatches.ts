@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 
+export type MatchStatus = 'scheduled' | 'live' | 'finished';
+
 export interface Match {
   id: string;
   homeTeam: string;
@@ -8,43 +10,39 @@ export interface Match {
   time: string;
   venue: string;
   competition: string;
-  status: 'scheduled' | 'live' | 'finished';
+  status: MatchStatus;
   score?: {
     home: number;
     away: number;
   };
 }
 
-const MATCHES_STORAGE_KEY = 'fc_gudauta_matches';
+const STORAGE_KEY = 'matches';
 
 export const useMatches = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load matches from localStorage
   useEffect(() => {
-    const loadMatches = () => {
-      try {
-        const storedMatches = localStorage.getItem(MATCHES_STORAGE_KEY);
-        if (storedMatches) {
-          const parsedMatches = JSON.parse(storedMatches);
-          if (Array.isArray(parsedMatches)) {
-            setMatches(parsedMatches);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading matches:', error);
-      } finally {
-        setIsLoading(false);
+    try {
+      const storedMatches = localStorage.getItem(STORAGE_KEY);
+      if (storedMatches) {
+        setMatches(JSON.parse(storedMatches));
       }
-    };
+    } catch (error) {
+      console.error('Error loading matches from localStorage:', error);
+    } finally {
+      setIsLoading(false);
+    }
 
-    loadMatches();
-
-    // Listen for storage changes
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === MATCHES_STORAGE_KEY) {
-        loadMatches();
+      if (e.key === STORAGE_KEY) {
+        try {
+          const newMatches = e.newValue ? JSON.parse(e.newValue) : [];
+          setMatches(newMatches);
+        } catch (error) {
+          console.error('Error parsing matches from storage event:', error);
+        }
       }
     };
 
@@ -54,34 +52,29 @@ export const useMatches = () => {
 
   const saveMatches = (newMatches: Match[]) => {
     try {
-      localStorage.setItem(MATCHES_STORAGE_KEY, JSON.stringify(newMatches));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
       setMatches(newMatches);
-      // Trigger storage event for other tabs/windows
-      window.dispatchEvent(new Event('storage'));
-      return true;
     } catch (error) {
-      console.error('Error saving matches:', error);
-      return false;
+      console.error('Error saving matches to localStorage:', error);
+      throw error;
     }
   };
 
-  const addMatch = (match: Omit<Match, 'id'>) => {
-    const newMatch: Match = {
-      ...match,
-      id: Date.now().toString(),
-    };
-    const updatedMatches = [...matches, newMatch];
-    return saveMatches(updatedMatches);
+  const addMatch = (match: Match) => {
+    const newMatches = [...matches, match];
+    saveMatches(newMatches);
   };
 
-  const updateMatch = (match: Match) => {
-    const updatedMatches = matches.map(m => m.id === match.id ? match : m);
-    return saveMatches(updatedMatches);
+  const updateMatch = (updatedMatch: Match) => {
+    const newMatches = matches.map(match => 
+      match.id === updatedMatch.id ? updatedMatch : match
+    );
+    saveMatches(newMatches);
   };
 
-  const deleteMatch = (id: string) => {
-    const updatedMatches = matches.filter(m => m.id !== id);
-    return saveMatches(updatedMatches);
+  const deleteMatch = (matchId: string) => {
+    const newMatches = matches.filter(match => match.id !== matchId);
+    saveMatches(newMatches);
   };
 
   return {
