@@ -71,6 +71,7 @@ export const useMatches = () => {
           // If API returns matches, use them and update localStorage
           setMatches(apiMatches);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(apiMatches));
+          setError(null);
           console.log('Matches loaded from API and saved to localStorage');
         } else {
           // If API returns empty, try to load from localStorage
@@ -81,13 +82,16 @@ export const useMatches = () => {
             const parsedMatches = JSON.parse(storedMatches);
             if (parsedMatches && parsedMatches.length > 0) {
               setMatches(parsedMatches);
+              setError('Используются сохраненные данные. API недоступен.');
               console.log('Matches loaded from localStorage');
             } else {
               setMatches([]);
+              setError('Нет доступных матчей');
               console.log('No matches found in localStorage');
             }
           } else {
             setMatches([]);
+            setError('Нет доступных матчей');
             console.log('No matches found in localStorage');
           }
         }
@@ -102,19 +106,22 @@ export const useMatches = () => {
             const parsedMatches = JSON.parse(storedMatches);
             if (parsedMatches && parsedMatches.length > 0) {
               setMatches(parsedMatches);
+              setError('Используются сохраненные данные. API недоступен.');
               console.log('Matches loaded from localStorage after API error');
             } else {
               setMatches([]);
+              setError('Нет доступных матчей');
               console.log('No matches found in localStorage after API error');
             }
           } else {
             setMatches([]);
+            setError('Нет доступных матчей');
             console.log('No matches found in localStorage after API error');
           }
         } catch (e) {
           console.error('Error loading matches from localStorage:', e);
           setMatches([]);
-          setError('Failed to load matches');
+          setError('Ошибка загрузки матчей');
         }
       } finally {
         setIsLoading(false);
@@ -154,10 +161,11 @@ export const useMatches = () => {
       // Update localStorage as backup
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
       setMatches(newMatches);
+      setError(null);
       console.log('Matches saved to API and localStorage');
     } catch (error) {
       console.error('Error saving matches:', error);
-      setError('Failed to save matches');
+      setError('Ошибка сохранения матчей');
     }
   };
 
@@ -168,10 +176,11 @@ export const useMatches = () => {
       const newMatches = [...matches, savedMatch];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
       setMatches(newMatches);
+      setError(null);
       console.log('Match added to API and localStorage');
     } catch (error) {
       console.error('Error adding match:', error);
-      setError('Failed to add match');
+      setError('Ошибка добавления матча');
     }
   };
 
@@ -184,10 +193,11 @@ export const useMatches = () => {
       );
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
       setMatches(newMatches);
+      setError(null);
       console.log('Match updated in API and localStorage');
     } catch (error) {
       console.error('Error updating match:', error);
-      setError('Failed to update match');
+      setError('Ошибка обновления матча');
     }
   };
 
@@ -198,10 +208,11 @@ export const useMatches = () => {
       const newMatches = matches.filter(match => match.id !== matchId);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
       setMatches(newMatches);
+      setError(null);
       console.log('Match deleted from API and localStorage');
     } catch (error) {
       console.error('Error deleting match:', error);
-      setError('Failed to delete match');
+      setError('Ошибка удаления матча');
     }
   };
 

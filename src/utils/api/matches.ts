@@ -1,6 +1,7 @@
 import { Match } from '@/hooks/useMatches';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+// Используем production URL для API
+const API_URL = process.env.REACT_APP_API_URL || 'https://api.fcgudauta.ru';
 
 export const fetchMatches = async (): Promise<Match[]> => {
   try {
