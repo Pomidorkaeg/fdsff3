@@ -11,8 +11,7 @@ const getAuthHeaders = () => {
   };
 };
 
-// Функция для работы с localStorage
-const getLocalMatches = (): Match[] => {
+export const getLocalMatches = (): Match[] => {
   try {
     const matches = localStorage.getItem(STORAGE_KEY);
     return matches ? JSON.parse(matches) : [];
@@ -22,7 +21,7 @@ const getLocalMatches = (): Match[] => {
   }
 };
 
-const saveLocalMatches = (matches: Match[]): void => {
+export const saveLocalMatches = (matches: Match[]): void => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(matches));
   } catch (error) {

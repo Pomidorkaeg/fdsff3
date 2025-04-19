@@ -6,8 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/components/ui/use-toast';
 import { useMatches } from '@/hooks/useMatches';
 import { Match, MatchStatus } from '@/hooks/useMatches';
-import { addMatch, updateMatch, deleteMatch } from '@/utils/api/matches';
-import { Calendar, Clock, MapPin, Trophy, Trash2, Edit2, Plus } from 'lucide-react';
+import { addMatch, updateMatch, deleteMatch, getLocalMatches, saveLocalMatches } from '@/utils/api/matches';
+import { Calendar, Clock, MapPin, Trophy, Trash2, Edit2, Plus, AlertCircle } from 'lucide-react';
 
 const MatchesManagement: React.FC = () => {
   const { matches, isLoading, error } = useMatches();
@@ -68,7 +68,7 @@ const MatchesManagement: React.FC = () => {
           description: 'Изменения успешно сохранены',
         });
       } else {
-        await addMatch(formData as Match);
+        const newMatch = await addMatch(formData as Match);
         toast({
           title: 'Матч добавлен',
           description: 'Новый матч успешно создан',
@@ -109,16 +109,23 @@ const MatchesManagement: React.FC = () => {
     );
   }
 
-  if (error) {
-    return (
-      <div className="text-center text-red-500 p-4">
-        <p>Ошибка загрузки матчей: {error}</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4">
+      {error && (
+        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <AlertCircle className="h-5 w-5 text-yellow-400" />
+            </div>
+            <div className="ml-3">
+              <p className="text-sm text-yellow-700">
+                {error}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Управление матчами</h2>
         <Button
@@ -220,6 +227,7 @@ const MatchesManagement: React.FC = () => {
                     value={formData.homeTeam}
                     onChange={handleInputChange}
                     placeholder="Название команды"
+                    required
                   />
                 </div>
                 <div>
@@ -229,6 +237,7 @@ const MatchesManagement: React.FC = () => {
                     value={formData.awayTeam}
                     onChange={handleInputChange}
                     placeholder="Название команды"
+                    required
                   />
                 </div>
               </div>
@@ -240,6 +249,7 @@ const MatchesManagement: React.FC = () => {
                     value={formData.date}
                     onChange={handleInputChange}
                     placeholder="ДД.ММ.ГГГГ"
+                    required
                   />
                 </div>
                 <div>
@@ -249,6 +259,7 @@ const MatchesManagement: React.FC = () => {
                     value={formData.time}
                     onChange={handleInputChange}
                     placeholder="ЧЧ:ММ"
+                    required
                   />
                 </div>
               </div>
@@ -259,6 +270,7 @@ const MatchesManagement: React.FC = () => {
                   value={formData.venue}
                   onChange={handleInputChange}
                   placeholder="Название стадиона"
+                  required
                 />
               </div>
               <div>
@@ -268,6 +280,7 @@ const MatchesManagement: React.FC = () => {
                   value={formData.competition}
                   onChange={handleInputChange}
                   placeholder="Название турнира"
+                  required
                 />
               </div>
               <div>
