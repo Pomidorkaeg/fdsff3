@@ -66,7 +66,11 @@ export const MatchesCarousel = () => {
             <div className="text-center">
               <p className="text-xl font-bold">{currentMatch.homeTeam}</p>
               {currentMatch.status === 'finished' && currentMatch.score && (
-                <p className="text-2xl font-bold">{currentMatch.score.home}</p>
+                <div className="flex items-center justify-center space-x-2">
+                  <span className="font-bold">
+                    {currentMatch.score.home} - {currentMatch.score.away}
+                  </span>
+                </div>
               )}
             </div>
             
@@ -87,7 +91,11 @@ export const MatchesCarousel = () => {
             <div className="text-center">
               <p className="text-xl font-bold">{currentMatch.awayTeam}</p>
               {currentMatch.status === 'finished' && currentMatch.score && (
-                <p className="text-2xl font-bold">{currentMatch.score.away}</p>
+                <div className="flex items-center justify-center space-x-2">
+                  <span className="font-bold">
+                    {currentMatch.score.home} - {currentMatch.score.away}
+                  </span>
+                </div>
               )}
             </div>
           </div>
