@@ -10,7 +10,7 @@ import { addMatch, updateMatch, deleteMatch, getLocalMatches, saveLocalMatches }
 import { Calendar, Clock, MapPin, Trophy, Trash2, Edit2, Plus, AlertCircle } from 'lucide-react';
 
 const MatchesManagement: React.FC = () => {
-  const { matches, isLoading, error } = useMatches();
+  const { matches, isLoading, error, setMatches } = useMatches();
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [formData, setFormData] = useState<Partial<Match>>({
@@ -62,13 +62,15 @@ const MatchesManagement: React.FC = () => {
   const handleSave = async () => {
     try {
       if (selectedMatch) {
-        await updateMatch({ ...selectedMatch, ...formData });
+        const updatedMatch = await updateMatch({ ...selectedMatch, ...formData });
+        setMatches(prev => prev.map(m => m.id === updatedMatch.id ? updatedMatch : m));
         toast({
           title: 'Матч обновлен',
           description: 'Изменения успешно сохранены',
         });
       } else {
         const newMatch = await addMatch(formData as Match);
+        setMatches(prev => [...prev, newMatch]);
         toast({
           title: 'Матч добавлен',
           description: 'Новый матч успешно создан',
@@ -88,6 +90,7 @@ const MatchesManagement: React.FC = () => {
   const handleDelete = async (matchId: string) => {
     try {
       await deleteMatch(matchId);
+      setMatches(prev => prev.filter(m => m.id !== matchId));
       toast({
         title: 'Матч удален',
         description: 'Матч успешно удален',
