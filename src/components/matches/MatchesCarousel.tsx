@@ -62,16 +62,16 @@ const MatchesCarousel: React.FC = () => {
   const currentMatch = matches[currentIndex];
   
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-hidden w-full">
       <Card 
-        className={`p-6 transition-all duration-500 ease-out transform ${
+        className={`p-4 sm:p-6 transition-all duration-500 ease-out transform ${
           isAnimating && direction === 'right' ? 'translate-x-full opacity-0 scale-95' :
           isAnimating && direction === 'left' ? '-translate-x-full opacity-0 scale-95' :
           'translate-x-0 opacity-100 scale-100'
         }`}
       >
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
               currentMatch.status === 'live' ? 'bg-fc-green text-white' :
               currentMatch.status === 'finished' ? 'bg-gray-200 text-gray-700' :
@@ -83,59 +83,59 @@ const MatchesCarousel: React.FC = () => {
             </span>
             <div className="flex items-center gap-2 text-gray-500">
               <Calendar className="h-4 w-4" />
-              <span>{currentMatch.date} {currentMatch.time}</span>
+              <span className="text-sm sm:text-base">{currentMatch.date} {currentMatch.time}</span>
             </div>
           </div>
           
           {matches.length > 1 && (
-            <div className="flex gap-2">
+            <div className="flex gap-2 self-end sm:self-auto">
               <Button
                 variant="outline"
                 size="icon"
                 onClick={prevMatch}
                 disabled={isAnimating}
-                className="h-8 w-8 transition-all duration-300 hover:scale-110 hover:bg-fc-green hover:text-white active:scale-95"
+                className="h-7 w-7 sm:h-8 sm:w-8 transition-all duration-300 hover:scale-110 hover:bg-fc-green hover:text-white active:scale-95"
               >
-                <ChevronLeft className="h-4 w-4" />
+                <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
               <Button
                 variant="outline"
                 size="icon"
                 onClick={nextMatch}
                 disabled={isAnimating}
-                className="h-8 w-8 transition-all duration-300 hover:scale-110 hover:bg-fc-green hover:text-white active:scale-95"
+                className="h-7 w-7 sm:h-8 sm:w-8 transition-all duration-300 hover:scale-110 hover:bg-fc-green hover:text-white active:scale-95"
               >
-                <ChevronRight className="h-4 w-4" />
+                <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
               </Button>
             </div>
           )}
         </div>
         
-        <div className="flex items-center gap-8">
-          <div className="flex-1">
-            <div className="text-lg font-semibold">{currentMatch.homeTeam}</div>
+        <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
+          <div className="flex-1 text-center sm:text-left">
+            <div className="text-base sm:text-lg font-semibold">{currentMatch.homeTeam}</div>
           </div>
           <div className="flex items-center gap-3">
             {currentMatch.status !== 'scheduled' && (
-              <div className="text-2xl font-bold">
+              <div className="text-xl sm:text-2xl font-bold">
                 {currentMatch.score?.home} - {currentMatch.score?.away}
               </div>
             )}
             {currentMatch.status === 'scheduled' && (
-              <div className="text-xl font-bold">vs</div>
+              <div className="text-lg sm:text-xl font-bold">vs</div>
             )}
           </div>
-          <div className="flex-1 text-right">
-            <div className="text-lg font-semibold">{currentMatch.awayTeam}</div>
+          <div className="flex-1 text-center sm:text-right">
+            <div className="text-base sm:text-lg font-semibold">{currentMatch.awayTeam}</div>
           </div>
         </div>
         
-        <div className="flex items-center gap-4 mt-4 text-sm text-gray-500">
+        <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 mt-4 text-sm text-gray-500">
           <div className="flex items-center gap-2">
             <Trophy className="h-4 w-4" />
-            {currentMatch.competition}
+            <span className="text-xs sm:text-sm">{currentMatch.competition}</span>
           </div>
-          <div>{currentMatch.venue}</div>
+          <div className="text-xs sm:text-sm">{currentMatch.venue}</div>
         </div>
       </Card>
       

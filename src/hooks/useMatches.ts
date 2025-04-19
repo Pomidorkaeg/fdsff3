@@ -15,6 +15,8 @@ export interface Match {
   };
 }
 
+const MATCHES_STORAGE_KEY = 'fc_gudauta_matches';
+
 export const useMatches = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -23,7 +25,7 @@ export const useMatches = () => {
   useEffect(() => {
     const loadMatches = () => {
       try {
-        const storedMatches = localStorage.getItem('matches');
+        const storedMatches = localStorage.getItem(MATCHES_STORAGE_KEY);
         if (storedMatches) {
           const parsedMatches = JSON.parse(storedMatches);
           if (Array.isArray(parsedMatches)) {
@@ -41,7 +43,7 @@ export const useMatches = () => {
 
     // Listen for storage changes
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'matches') {
+      if (e.key === MATCHES_STORAGE_KEY) {
         loadMatches();
       }
     };
@@ -52,7 +54,7 @@ export const useMatches = () => {
 
   const saveMatches = (newMatches: Match[]) => {
     try {
-      localStorage.setItem('matches', JSON.stringify(newMatches));
+      localStorage.setItem(MATCHES_STORAGE_KEY, JSON.stringify(newMatches));
       setMatches(newMatches);
       // Trigger storage event for other tabs/windows
       window.dispatchEvent(new Event('storage'));

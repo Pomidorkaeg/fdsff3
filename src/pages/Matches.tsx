@@ -1,92 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { Calendar, Filter, ChevronDown, MapPin, ChevronLeft, ChevronRight, Trophy } from 'lucide-react';
+import { Calendar, Filter, ChevronDown, MapPin, ChevronLeft, ChevronRight, Trophy, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface Match {
-  id: string;
-  homeTeam: string;
-  awayTeam: string;
-  date: string;
-  time: string;
-  venue: string;
-  competition: string;
-  status: 'scheduled' | 'live' | 'finished';
-  score?: {
-    home: number;
-    away: number;
-  };
-}
+import { Card } from '@/components/ui/card';
+import { useMatches } from '@/hooks/useMatches';
+import { Match } from '@/hooks/useMatches';
 
 const Matches = () => {
+  const { matches, isLoading } = useMatches();
   const [filter, setFilter] = useState('upcoming');
   const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
   const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
-  const [matches, setMatches] = useState<Match[]>([]);
   
-  // Load matches from localStorage and listen for changes
-  useEffect(() => {
-    const loadMatches = () => {
-      try {
-        const loadedMatches = localStorage.getItem('matches');
-        console.log('Loading matches in Matches component:', loadedMatches);
-        
-        if (loadedMatches) {
-          const parsedMatches = JSON.parse(loadedMatches);
-          console.log('Parsed matches in Matches component:', parsedMatches);
-          
-          if (Array.isArray(parsedMatches)) {
-            setMatches(parsedMatches);
-          } else {
-            console.error('Invalid matches data format');
-            setMatches([]);
-          }
-        } else {
-          console.log('No matches found in localStorage');
-          setMatches([]);
-        }
-      } catch (error) {
-        console.error('Error loading matches:', error);
-        setMatches([]);
-      }
-    };
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-fc-green"></div>
+      </div>
+    );
+  }
 
-    // Load initial matches
-    loadMatches();
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ru-RU', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
 
-    // Listen for storage changes
-    const handleStorageChange = (e: StorageEvent) => {
-      console.log('Storage event detected:', e);
-      if (e.key === 'matches') {
-        loadMatches();
-      }
-    };
+  const formatTime = (timeString: string) => {
+    return timeString;
+  };
 
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-  
-  // Filter matches based on status and month
-  const filteredMatches = matches.filter((match) => {
-    if (filter === 'upcoming' && match.status === 'scheduled') {
-      return true;
+  const getStatusColor = (status: Match['status']) => {
+    switch (status) {
+      case 'live':
+        return 'bg-fc-green text-white';
+      case 'finished':
+        return 'bg-gray-200 text-gray-700';
+      default:
+        return 'bg-fc-yellow text-gray-900';
     }
-    if (filter === 'completed' && match.status === 'finished') {
-      return true;
+  };
+
+  const getStatusText = (status: Match['status']) => {
+    switch (status) {
+      case 'live':
+        return 'Идет матч';
+      case 'finished':
+        return 'Завершен';
+      default:
+        return 'Запланирован';
     }
-    return false;
-  }).filter((match) => {
-    if (filter === 'upcoming') {
-      // For upcoming matches, show all future matches
-      return true;
-    } else {
-      // For completed matches, filter by selected month
-      const matchDate = new Date(match.date);
-      return matchDate.getMonth() === currentMonth;
-    }
-  });
-  
+  };
+
   const handlePreviousMonth = () => {
     if (currentMonth === 0) {
       setCurrentMonth(11);
@@ -196,59 +165,60 @@ const Matches = () => {
         
         {/* Matches List */}
         <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <div className="grid gap-6">
-            {filteredMatches.map((match) => (
-              <div key={match.id} className="bg-white rounded-lg shadow-sm p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      match.status === 'live' ? 'bg-fc-green text-white' :
-                      match.status === 'finished' ? 'bg-gray-200 text-gray-700' :
-                      'bg-fc-yellow text-gray-900'
-                    }`}>
-                      {match.status === 'live' ? 'Идет матч' :
-                       match.status === 'finished' ? 'Завершен' :
-                       'Запланирован'}
-                    </span>
-                    <div className="flex items-center gap-2 text-gray-500">
-                      <Calendar className="h-4 w-4" />
-                      <span>{match.date} {match.time}</span>
+          {matches.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500">Нет запланированных матчей</p>
+            </div>
+          ) : (
+            <div className="grid gap-6">
+              {matches.map((match) => (
+                <Card key={match.id} className="p-4 sm:p-6 hover:shadow-lg transition-shadow duration-300">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(match.status)}`}>
+                        {getStatusText(match.status)}
+                      </span>
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <Calendar className="h-4 w-4" />
+                        <span className="text-sm sm:text-base">{formatDate(match.date)}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-500">
+                        <Clock className="h-4 w-4" />
+                        <span className="text-sm sm:text-base">{formatTime(match.time)}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex items-center gap-8">
-                  <div className="flex-1">
-                    <div className="text-lg font-semibold">{match.homeTeam}</div>
+                  <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
+                    <div className="flex-1 text-center sm:text-left">
+                      <div className="text-base sm:text-lg font-semibold">{match.homeTeam}</div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {match.status !== 'scheduled' && (
+                        <div className="text-xl sm:text-2xl font-bold">
+                          {match.score?.home} - {match.score?.away}
+                        </div>
+                      )}
+                      {match.status === 'scheduled' && (
+                        <div className="text-lg sm:text-xl font-bold">vs</div>
+                      )}
+                    </div>
+                    <div className="flex-1 text-center sm:text-right">
+                      <div className="text-base sm:text-lg font-semibold">{match.awayTeam}</div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    {match.status !== 'scheduled' && match.score && (
-                      <div className="text-2xl font-bold">
-                        {match.score.home} - {match.score.away}
-                      </div>
-                    )}
-                    {match.status === 'scheduled' && (
-                      <div className="text-xl font-bold">vs</div>
-                    )}
-                  </div>
-                  <div className="flex-1 text-right">
-                    <div className="text-lg font-semibold">{match.awayTeam}</div>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-4 mt-3 text-sm text-gray-500">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="h-4 w-4" />
-                    {match.competition}
+                  <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 mt-4 text-sm text-gray-500">
+                    <div className="flex items-center gap-2">
+                      <Trophy className="h-4 w-4" />
+                      <span className="text-xs sm:text-sm">{match.competition}</span>
+                    </div>
+                    <div className="text-xs sm:text-sm">{match.venue}</div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    {match.venue}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </section>
       </main>
       
