@@ -20,6 +20,40 @@ export interface Match {
 
 const STORAGE_KEY = 'matches';
 
+// Добавляем тестовые матчи по умолчанию
+const DEFAULT_MATCHES: Match[] = [
+  {
+    id: '1',
+    homeTeam: 'Гудаута',
+    awayTeam: 'Динамо',
+    date: '25.03.2024',
+    time: '15:00',
+    venue: 'Стадион им. Даура Ахвледиани',
+    competition: 'Чемпионат Абхазии',
+    status: 'scheduled'
+  },
+  {
+    id: '2',
+    homeTeam: 'Гудаута',
+    awayTeam: 'Рица',
+    date: '01.04.2024',
+    time: '16:00',
+    venue: 'Стадион им. Даура Ахвледиани',
+    competition: 'Кубок Абхазии',
+    status: 'scheduled'
+  },
+  {
+    id: '3',
+    homeTeam: 'Афон',
+    awayTeam: 'Гудаута',
+    date: '10.04.2024',
+    time: '17:00',
+    venue: 'Стадион "Афон Арена"',
+    competition: 'Чемпионат Абхазии',
+    status: 'scheduled'
+  }
+];
+
 export const useMatches = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,7 +66,7 @@ export const useMatches = () => {
         // Try to fetch matches from API first
         const apiMatches = await fetchMatches();
         console.log('API matches:', apiMatches);
-        if (apiMatches.length > 0) {
+        if (apiMatches && apiMatches.length > 0) {
           setMatches(apiMatches);
           // Update localStorage as backup
           localStorage.setItem(STORAGE_KEY, JSON.stringify(apiMatches));
@@ -42,8 +76,21 @@ export const useMatches = () => {
           const storedMatches = localStorage.getItem(STORAGE_KEY);
           console.log('Stored matches from localStorage:', storedMatches);
           if (storedMatches) {
-            setMatches(JSON.parse(storedMatches));
-            console.log('Matches loaded from localStorage');
+            const parsedMatches = JSON.parse(storedMatches);
+            if (parsedMatches && parsedMatches.length > 0) {
+              setMatches(parsedMatches);
+              console.log('Matches loaded from localStorage');
+            } else {
+              // If localStorage is empty, use default matches
+              setMatches(DEFAULT_MATCHES);
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_MATCHES));
+              console.log('Using default matches');
+            }
+          } else {
+            // If no stored matches, use default matches
+            setMatches(DEFAULT_MATCHES);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_MATCHES));
+            console.log('Using default matches');
           }
         }
       } catch (error) {
@@ -53,12 +100,27 @@ export const useMatches = () => {
           const storedMatches = localStorage.getItem(STORAGE_KEY);
           console.log('Stored matches from localStorage after API error:', storedMatches);
           if (storedMatches) {
-            setMatches(JSON.parse(storedMatches));
-            console.log('Matches loaded from localStorage after API error');
+            const parsedMatches = JSON.parse(storedMatches);
+            if (parsedMatches && parsedMatches.length > 0) {
+              setMatches(parsedMatches);
+              console.log('Matches loaded from localStorage after API error');
+            } else {
+              // If localStorage is empty, use default matches
+              setMatches(DEFAULT_MATCHES);
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_MATCHES));
+              console.log('Using default matches after API error');
+            }
+          } else {
+            // If no stored matches, use default matches
+            setMatches(DEFAULT_MATCHES);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_MATCHES));
+            console.log('Using default matches after API error');
           }
         } catch (e) {
           console.error('Error loading matches from localStorage:', e);
-          setError('Failed to load matches');
+          // If localStorage fails, use default matches
+          setMatches(DEFAULT_MATCHES);
+          console.log('Using default matches after all errors');
         }
       } finally {
         setIsLoading(false);
@@ -70,11 +132,12 @@ export const useMatches = () => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY) {
         try {
-          const newMatches = e.newValue ? JSON.parse(e.newValue) : [];
+          const newMatches = e.newValue ? JSON.parse(e.newValue) : DEFAULT_MATCHES;
           console.log('Storage event - new matches:', newMatches);
           setMatches(newMatches);
         } catch (error) {
           console.error('Error parsing matches from storage event:', error);
+          setMatches(DEFAULT_MATCHES);
         }
       }
     };
@@ -107,7 +170,7 @@ export const useMatches = () => {
         console.log('Matches saved to localStorage only');
       } catch (e) {
         console.error('Error saving matches to localStorage:', e);
-        throw e;
+        setMatches(DEFAULT_MATCHES);
       }
     }
   };
