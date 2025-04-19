@@ -21,7 +21,6 @@ export interface Match {
 export const useMatches = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string>('');
   const [isApiAvailable, setIsApiAvailable] = useState(true);
 
   useEffect(() => {
@@ -38,15 +37,12 @@ export const useMatches = () => {
         if (apiMatches && apiMatches.length > 0) {
           setMatches(apiMatches);
           setIsApiAvailable(true);
-          setError('');
         } else {
           setIsApiAvailable(false);
-          setError('Используются сохраненные данные. API недоступен.');
         }
       } catch (err) {
         console.error('Error loading matches:', err);
         setIsApiAvailable(false);
-        setError('Используются сохраненные данные. API недоступен.');
       } finally {
         setIsLoading(false);
       }
@@ -59,9 +55,6 @@ export const useMatches = () => {
     try {
       const newMatch = await addMatch(match);
       setMatches(prev => [...prev, newMatch]);
-      if (!isApiAvailable) {
-        setError('Используются сохраненные данные. API недоступен.');
-      }
     } catch (err) {
       console.error('Error adding match:', err);
       throw err;
@@ -72,9 +65,6 @@ export const useMatches = () => {
     try {
       const match = await updateMatch(updatedMatch);
       setMatches(prev => prev.map(m => m.id === match.id ? match : m));
-      if (!isApiAvailable) {
-        setError('Используются сохраненные данные. API недоступен.');
-      }
     } catch (err) {
       console.error('Error updating match:', err);
       throw err;
@@ -85,9 +75,6 @@ export const useMatches = () => {
     try {
       await deleteMatch(matchId);
       setMatches(prev => prev.filter(m => m.id !== matchId));
-      if (!isApiAvailable) {
-        setError('Используются сохраненные данные. API недоступен.');
-      }
     } catch (err) {
       console.error('Error deleting match:', err);
       throw err;
@@ -98,9 +85,6 @@ export const useMatches = () => {
     try {
       saveLocalMatches(newMatches);
       setMatches(newMatches);
-      if (!isApiAvailable) {
-        setError('Используются сохраненные данные. API недоступен.');
-      }
     } catch (err) {
       console.error('Error saving matches:', err);
       throw err;
@@ -111,7 +95,6 @@ export const useMatches = () => {
     matches,
     setMatches,
     isLoading,
-    error,
     isApiAvailable,
     addMatch: handleAddMatch,
     updateMatch: handleUpdateMatch,
