@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Calendar, Trophy, MapPin, AlertCircle } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Trophy, MapPin, AlertCircle, Clock } from 'lucide-react';
 import { useMatches } from '@/hooks/useMatches';
 import { Match } from '@/hooks/useMatches';
 
@@ -11,6 +11,15 @@ const MatchesCarousel: React.FC = () => {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [direction, setDirection] = useState<'left' | 'right'>('right');
   const [isAnimating, setIsAnimating] = useState(false);
+  
+  // Auto-refresh matches every 30 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      window.location.reload();
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
   
   useEffect(() => {
     if (!isAutoPlaying || !matches || matches.length <= 1) return;
@@ -63,7 +72,7 @@ const MatchesCarousel: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center py-4 sm:py-8 text-center">
         <AlertCircle className="h-6 w-6 sm:h-8 sm:w-8 text-red-500 mb-2" />
-        <p className="text-red-500 text-sm sm:text-base">Ошибка загрузки матчей</p>
+        <p className="text-red-500 text-sm sm:text-base">{error}</p>
         <p className="text-gray-500 text-xs sm:text-sm mt-1">Попробуйте обновить страницу</p>
       </div>
     );
@@ -101,7 +110,9 @@ const MatchesCarousel: React.FC = () => {
             </span>
             <div className="flex items-center gap-1.5 sm:gap-2 text-gray-500">
               <Calendar className="h-2.5 w-2.5 sm:h-4 sm:w-4" />
-              <span className="text-[10px] sm:text-sm">{currentMatch.date} {currentMatch.time}</span>
+              <span className="text-[10px] sm:text-sm">{currentMatch.date}</span>
+              <Clock className="h-2.5 w-2.5 sm:h-4 sm:w-4 ml-1" />
+              <span className="text-[10px] sm:text-sm">{currentMatch.time}</span>
             </div>
           </div>
           

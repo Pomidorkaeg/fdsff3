@@ -3,10 +3,20 @@ import { Match } from '@/hooks/useMatches';
 // Используем production URL для API
 const API_URL = process.env.REACT_APP_API_URL || 'https://api.fcgudauta.ru';
 
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+};
+
 export const fetchMatches = async (): Promise<Match[]> => {
   try {
     console.log('Fetching matches from API...');
-    const response = await fetch(`${API_URL}/api/matches`);
+    const response = await fetch(`${API_URL}/api/matches`, {
+      headers: getAuthHeaders()
+    });
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Failed to fetch matches:', errorText);
@@ -26,9 +36,7 @@ export const addMatch = async (match: Match): Promise<Match> => {
     console.log('Adding match to API:', match);
     const response = await fetch(`${API_URL}/api/matches`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(match),
     });
     if (!response.ok) {
@@ -50,9 +58,7 @@ export const updateMatch = async (match: Match): Promise<Match> => {
     console.log('Updating match in API:', match);
     const response = await fetch(`${API_URL}/api/matches/${match.id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify(match),
     });
     if (!response.ok) {
@@ -74,6 +80,7 @@ export const deleteMatch = async (matchId: string): Promise<void> => {
     console.log('Deleting match from API:', matchId);
     const response = await fetch(`${API_URL}/api/matches/${matchId}`, {
       method: 'DELETE',
+      headers: getAuthHeaders(),
     });
     if (!response.ok) {
       const errorText = await response.text();
