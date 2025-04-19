@@ -63,34 +63,32 @@ export const useMatches = () => {
     const loadMatches = async () => {
       console.log('Loading matches...');
       try {
-        // Try to fetch matches from API first
+        // Always try to fetch matches from API first
         const apiMatches = await fetchMatches();
         console.log('API matches:', apiMatches);
+        
         if (apiMatches && apiMatches.length > 0) {
+          // If API returns matches, use them and update localStorage
           setMatches(apiMatches);
-          // Update localStorage as backup
           localStorage.setItem(STORAGE_KEY, JSON.stringify(apiMatches));
           console.log('Matches loaded from API and saved to localStorage');
         } else {
           // If API returns empty, try to load from localStorage
           const storedMatches = localStorage.getItem(STORAGE_KEY);
           console.log('Stored matches from localStorage:', storedMatches);
+          
           if (storedMatches) {
             const parsedMatches = JSON.parse(storedMatches);
             if (parsedMatches && parsedMatches.length > 0) {
               setMatches(parsedMatches);
               console.log('Matches loaded from localStorage');
             } else {
-              // If localStorage is empty, use default matches
-              setMatches(DEFAULT_MATCHES);
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_MATCHES));
-              console.log('Using default matches');
+              setMatches([]);
+              console.log('No matches found in localStorage');
             }
           } else {
-            // If no stored matches, use default matches
-            setMatches(DEFAULT_MATCHES);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_MATCHES));
-            console.log('Using default matches');
+            setMatches([]);
+            console.log('No matches found in localStorage');
           }
         }
       } catch (error) {
@@ -99,28 +97,24 @@ export const useMatches = () => {
         try {
           const storedMatches = localStorage.getItem(STORAGE_KEY);
           console.log('Stored matches from localStorage after API error:', storedMatches);
+          
           if (storedMatches) {
             const parsedMatches = JSON.parse(storedMatches);
             if (parsedMatches && parsedMatches.length > 0) {
               setMatches(parsedMatches);
               console.log('Matches loaded from localStorage after API error');
             } else {
-              // If localStorage is empty, use default matches
-              setMatches(DEFAULT_MATCHES);
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_MATCHES));
-              console.log('Using default matches after API error');
+              setMatches([]);
+              console.log('No matches found in localStorage after API error');
             }
           } else {
-            // If no stored matches, use default matches
-            setMatches(DEFAULT_MATCHES);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_MATCHES));
-            console.log('Using default matches after API error');
+            setMatches([]);
+            console.log('No matches found in localStorage after API error');
           }
         } catch (e) {
           console.error('Error loading matches from localStorage:', e);
-          // If localStorage fails, use default matches
-          setMatches(DEFAULT_MATCHES);
-          console.log('Using default matches after all errors');
+          setMatches([]);
+          setError('Failed to load matches');
         }
       } finally {
         setIsLoading(false);
@@ -132,12 +126,12 @@ export const useMatches = () => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === STORAGE_KEY) {
         try {
-          const newMatches = e.newValue ? JSON.parse(e.newValue) : DEFAULT_MATCHES;
+          const newMatches = e.newValue ? JSON.parse(e.newValue) : [];
           console.log('Storage event - new matches:', newMatches);
           setMatches(newMatches);
         } catch (error) {
           console.error('Error parsing matches from storage event:', error);
-          setMatches(DEFAULT_MATCHES);
+          setMatches([]);
         }
       }
     };
@@ -149,7 +143,7 @@ export const useMatches = () => {
   const saveMatches = async (newMatches: Match[]) => {
     console.log('Saving matches:', newMatches);
     try {
-      // Try to save to API first
+      // Always try to save to API first
       for (const match of newMatches) {
         if (!matches.find(m => m.id === match.id)) {
           await apiAddMatch(match);
@@ -163,15 +157,7 @@ export const useMatches = () => {
       console.log('Matches saved to API and localStorage');
     } catch (error) {
       console.error('Error saving matches:', error);
-      // If API fails, save to localStorage only
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
-        setMatches(newMatches);
-        console.log('Matches saved to localStorage only');
-      } catch (e) {
-        console.error('Error saving matches to localStorage:', e);
-        setMatches(DEFAULT_MATCHES);
-      }
+      setError('Failed to save matches');
     }
   };
 
@@ -185,11 +171,7 @@ export const useMatches = () => {
       console.log('Match added to API and localStorage');
     } catch (error) {
       console.error('Error adding match:', error);
-      // If API fails, save to localStorage only
-      const newMatches = [...matches, match];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
-      setMatches(newMatches);
-      console.log('Match added to localStorage only');
+      setError('Failed to add match');
     }
   };
 
@@ -205,13 +187,7 @@ export const useMatches = () => {
       console.log('Match updated in API and localStorage');
     } catch (error) {
       console.error('Error updating match:', error);
-      // If API fails, update localStorage only
-      const newMatches = matches.map(match => 
-        match.id === updatedMatch.id ? updatedMatch : match
-      );
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
-      setMatches(newMatches);
-      console.log('Match updated in localStorage only');
+      setError('Failed to update match');
     }
   };
 
@@ -225,11 +201,7 @@ export const useMatches = () => {
       console.log('Match deleted from API and localStorage');
     } catch (error) {
       console.error('Error deleting match:', error);
-      // If API fails, update localStorage only
-      const newMatches = matches.filter(match => match.id !== matchId);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
-      setMatches(newMatches);
-      console.log('Match deleted from localStorage only');
+      setError('Failed to delete match');
     }
   };
 
