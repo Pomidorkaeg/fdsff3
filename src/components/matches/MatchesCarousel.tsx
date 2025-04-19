@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Calendar, Trophy, MapPin } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Trophy, MapPin, AlertCircle } from 'lucide-react';
 import { useMatches } from '@/hooks/useMatches';
 import { Match } from '@/hooks/useMatches';
 
 const MatchesCarousel: React.FC = () => {
-  const { matches, isLoading } = useMatches();
+  const { matches, isLoading, error } = useMatches();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [direction, setDirection] = useState<'left' | 'right'>('right');
@@ -55,6 +55,16 @@ const MatchesCarousel: React.FC = () => {
     return (
       <div className="flex justify-center items-center py-4 sm:py-8">
         <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-t-2 border-b-2 border-fc-green"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-4 sm:py-8 text-center">
+        <AlertCircle className="h-6 w-6 sm:h-8 sm:w-8 text-red-500 mb-2" />
+        <p className="text-red-500 text-sm sm:text-base">Ошибка загрузки матчей</p>
+        <p className="text-gray-500 text-xs sm:text-sm mt-1">Попробуйте обновить страницу</p>
       </div>
     );
   }
