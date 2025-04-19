@@ -86,9 +86,10 @@ const MatchesManagement: React.FC = () => {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      if (!formData.homeTeam || !formData.awayTeam || !formData.date || !formData.time) {
+      if (!formData.homeTeam || !formData.awayTeam || !formData.date || !formData.time || !formData.venue || !formData.competition) {
         toast({
           title: "Ошибка",
           description: "Пожалуйста, заполните все обязательные поля",
@@ -97,27 +98,29 @@ const MatchesManagement: React.FC = () => {
         return;
       }
 
+      const matchData: Match = {
+        id: editingMatch?.id || Date.now().toString(),
+        homeTeam: formData.homeTeam,
+        awayTeam: formData.awayTeam,
+        date: formData.date,
+        time: formData.time,
+        venue: formData.venue,
+        competition: formData.competition,
+        status: formData.status as Match['status'],
+        score: formData.status === 'finished' ? formData.score : undefined
+      };
+
       if (editingMatch) {
-        const updatedMatch = { 
-          ...formData, 
-          id: editingMatch.id,
-          score: formData.status === 'scheduled' ? undefined : formData.score
-        } as Match;
-        updateMatch(updatedMatch);
+        updateMatch(matchData);
         toast({
-          title: "Матч обновлен",
+          title: "Успех",
           description: "Матч успешно обновлен",
         });
       } else {
-        const newMatch = { 
-          ...formData, 
-          id: Date.now().toString(),
-          score: formData.status === 'scheduled' ? undefined : formData.score
-        } as Match;
-        addMatch(newMatch);
+        addMatch(matchData);
         toast({
-          title: "Матч добавлен",
-          description: "Новый матч успешно добавлен",
+          title: "Успех",
+          description: "Матч успешно добавлен",
         });
       }
       handleCloseDialog();
@@ -135,7 +138,7 @@ const MatchesManagement: React.FC = () => {
     try {
       deleteMatch(matchId);
       toast({
-        title: "Матч удален",
+        title: "Успех",
         description: "Матч успешно удален",
       });
     } catch (error) {
@@ -149,122 +152,133 @@ const MatchesManagement: React.FC = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-fc-green"></div>
-      </div>
-    );
+    return <div>Загрузка...</div>;
   }
 
   return (
     <div className="container mx-auto py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Управление матчами</h1>
-        <Button onClick={() => setEditingMatch(null)}>
+        <Button onClick={() => handleOpenDialog()}>
+          <Plus className="h-4 w-4 mr-2" />
           Добавить матч
         </Button>
       </div>
 
       <div className="grid gap-4">
         {matches.map((match) => (
-          <div key={match.id} className="border rounded-lg p-4">
+          <Card key={match.id} className="p-4">
             <div className="flex justify-between items-center">
               <div>
                 <h3 className="font-semibold">{match.homeTeam} vs {match.awayTeam}</h3>
                 <p className="text-sm text-gray-500">
-                  {match.date} {match.time} • {match.venue}
+                  <Calendar className="inline-block h-4 w-4 mr-1" />
+                  {match.date} <Clock className="inline-block h-4 w-4 mr-1" />
+                  {match.time}
+                </p>
+                <p className="text-sm text-gray-500">
+                  <Trophy className="inline-block h-4 w-4 mr-1" />
+                  {match.competition}
+                  <MapPin className="inline-block h-4 w-4 mr-1 ml-2" />
+                  {match.venue}
                 </p>
               </div>
               <div className="flex gap-2">
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => setEditingMatch(match)}
+                  onClick={() => handleOpenDialog(match)}
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => deleteMatch(match.id)}
+                  onClick={() => handleDelete(match.id)}
                 >
                   <Trash className="h-4 w-4" />
                 </Button>
               </div>
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
-      <Dialog open={!!editingMatch} onOpenChange={() => setEditingMatch(null)}>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {editingMatch?.id ? 'Редактировать матч' : 'Добавить матч'}
+              {editingMatch ? 'Редактировать матч' : 'Добавить матч'}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSave} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="homeTeam">Хозяева</Label>
+              <label htmlFor="homeTeam" className="text-sm font-medium">Хозяева</label>
               <Input
                 id="homeTeam"
+                name="homeTeam"
                 value={formData.homeTeam}
-                onChange={(e) => setFormData({ ...formData, homeTeam: e.target.value })}
+                onChange={handleInputChange}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="awayTeam">Гости</Label>
+              <label htmlFor="awayTeam" className="text-sm font-medium">Гости</label>
               <Input
                 id="awayTeam"
+                name="awayTeam"
                 value={formData.awayTeam}
-                onChange={(e) => setFormData({ ...formData, awayTeam: e.target.value })}
+                onChange={handleInputChange}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="date">Дата</Label>
+              <label htmlFor="date" className="text-sm font-medium">Дата</label>
               <Input
                 id="date"
+                name="date"
                 type="date"
                 value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                onChange={handleInputChange}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="time">Время</Label>
+              <label htmlFor="time" className="text-sm font-medium">Время</label>
               <Input
                 id="time"
+                name="time"
                 type="time"
                 value={formData.time}
-                onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                onChange={handleInputChange}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="venue">Место проведения</Label>
+              <label htmlFor="venue" className="text-sm font-medium">Место проведения</label>
               <Input
                 id="venue"
+                name="venue"
                 value={formData.venue}
-                onChange={(e) => setFormData({ ...formData, venue: e.target.value })}
+                onChange={handleInputChange}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="competition">Соревнование</Label>
+              <label htmlFor="competition" className="text-sm font-medium">Соревнование</label>
               <Input
                 id="competition"
+                name="competition"
                 value={formData.competition}
-                onChange={(e) => setFormData({ ...formData, competition: e.target.value })}
+                onChange={handleInputChange}
                 required
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="status">Статус</Label>
+              <label htmlFor="status" className="text-sm font-medium">Статус</label>
               <Select
                 value={formData.status}
-                onValueChange={(value) => setFormData({ ...formData, status: value as Match['status'] })}
+                onValueChange={handleStatusChange}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Выберите статус" />
@@ -278,16 +292,13 @@ const MatchesManagement: React.FC = () => {
             </div>
             {formData.status === 'finished' && (
               <div className="space-y-2">
-                <Label>Счет</Label>
+                <label className="text-sm font-medium">Счет</label>
                 <div className="flex gap-2">
                   <Input
                     type="number"
                     min="0"
                     value={formData.score?.home || 0}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      score: { ...formData.score, home: parseInt(e.target.value) }
-                    })}
+                    onChange={(e) => handleScoreChange(e, 'home')}
                     required
                   />
                   <span className="flex items-center">-</span>
@@ -295,10 +306,7 @@ const MatchesManagement: React.FC = () => {
                     type="number"
                     min="0"
                     value={formData.score?.away || 0}
-                    onChange={(e) => setFormData({
-                      ...formData,
-                      score: { ...formData.score, away: parseInt(e.target.value) }
-                    })}
+                    onChange={(e) => handleScoreChange(e, 'away')}
                     required
                   />
                 </div>
