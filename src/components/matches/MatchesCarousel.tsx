@@ -8,7 +8,7 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
 export const MatchesCarousel = () => {
-  const { matches, isLoading } = useMatches();
+  const { matches, isLoading, error } = useMatches();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -39,6 +39,17 @@ export const MatchesCarousel = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex flex-col items-center space-y-2">
+          <AlertCircle className="w-8 h-8 text-destructive" />
+          <p className="text-destructive">{error}</p>
+        </div>
       </div>
     );
   }
