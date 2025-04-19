@@ -27,18 +27,23 @@ export const useMatches = () => {
 
   useEffect(() => {
     const loadMatches = async () => {
+      console.log('Loading matches...');
       try {
         // Try to fetch matches from API first
         const apiMatches = await fetchMatches();
+        console.log('API matches:', apiMatches);
         if (apiMatches.length > 0) {
           setMatches(apiMatches);
           // Update localStorage as backup
           localStorage.setItem(STORAGE_KEY, JSON.stringify(apiMatches));
+          console.log('Matches loaded from API and saved to localStorage');
         } else {
           // If API returns empty, try to load from localStorage
           const storedMatches = localStorage.getItem(STORAGE_KEY);
+          console.log('Stored matches from localStorage:', storedMatches);
           if (storedMatches) {
             setMatches(JSON.parse(storedMatches));
+            console.log('Matches loaded from localStorage');
           }
         }
       } catch (error) {
@@ -46,8 +51,10 @@ export const useMatches = () => {
         // If API fails, try to load from localStorage
         try {
           const storedMatches = localStorage.getItem(STORAGE_KEY);
+          console.log('Stored matches from localStorage after API error:', storedMatches);
           if (storedMatches) {
             setMatches(JSON.parse(storedMatches));
+            console.log('Matches loaded from localStorage after API error');
           }
         } catch (e) {
           console.error('Error loading matches from localStorage:', e);
@@ -64,6 +71,7 @@ export const useMatches = () => {
       if (e.key === STORAGE_KEY) {
         try {
           const newMatches = e.newValue ? JSON.parse(e.newValue) : [];
+          console.log('Storage event - new matches:', newMatches);
           setMatches(newMatches);
         } catch (error) {
           console.error('Error parsing matches from storage event:', error);
@@ -76,6 +84,7 @@ export const useMatches = () => {
   }, []);
 
   const saveMatches = async (newMatches: Match[]) => {
+    console.log('Saving matches:', newMatches);
     try {
       // Try to save to API first
       for (const match of newMatches) {
@@ -88,12 +97,14 @@ export const useMatches = () => {
       // Update localStorage as backup
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
       setMatches(newMatches);
+      console.log('Matches saved to API and localStorage');
     } catch (error) {
       console.error('Error saving matches:', error);
       // If API fails, save to localStorage only
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
         setMatches(newMatches);
+        console.log('Matches saved to localStorage only');
       } catch (e) {
         console.error('Error saving matches to localStorage:', e);
         throw e;
@@ -102,21 +113,25 @@ export const useMatches = () => {
   };
 
   const addMatch = async (match: Match) => {
+    console.log('Adding match:', match);
     try {
       const savedMatch = await apiAddMatch(match);
       const newMatches = [...matches, savedMatch];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
       setMatches(newMatches);
+      console.log('Match added to API and localStorage');
     } catch (error) {
       console.error('Error adding match:', error);
       // If API fails, save to localStorage only
       const newMatches = [...matches, match];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
       setMatches(newMatches);
+      console.log('Match added to localStorage only');
     }
   };
 
   const updateMatch = async (updatedMatch: Match) => {
+    console.log('Updating match:', updatedMatch);
     try {
       const savedMatch = await apiUpdateMatch(updatedMatch);
       const newMatches = matches.map(match => 
@@ -124,6 +139,7 @@ export const useMatches = () => {
       );
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
       setMatches(newMatches);
+      console.log('Match updated in API and localStorage');
     } catch (error) {
       console.error('Error updating match:', error);
       // If API fails, update localStorage only
@@ -132,21 +148,25 @@ export const useMatches = () => {
       );
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
       setMatches(newMatches);
+      console.log('Match updated in localStorage only');
     }
   };
 
   const deleteMatch = async (matchId: string) => {
+    console.log('Deleting match:', matchId);
     try {
       await apiDeleteMatch(matchId);
       const newMatches = matches.filter(match => match.id !== matchId);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
       setMatches(newMatches);
+      console.log('Match deleted from API and localStorage');
     } catch (error) {
       console.error('Error deleting match:', error);
       // If API fails, update localStorage only
       const newMatches = matches.filter(match => match.id !== matchId);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(newMatches));
       setMatches(newMatches);
+      console.log('Match deleted from localStorage only');
     }
   };
 
