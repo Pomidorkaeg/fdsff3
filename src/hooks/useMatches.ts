@@ -20,40 +20,6 @@ export interface Match {
 
 const STORAGE_KEY = 'matches';
 
-// Добавляем тестовые матчи по умолчанию
-const DEFAULT_MATCHES: Match[] = [
-  {
-    id: '1',
-    homeTeam: 'Гудаута',
-    awayTeam: 'Динамо',
-    date: '25.03.2024',
-    time: '15:00',
-    venue: 'Стадион им. Даура Ахвледиани',
-    competition: 'Чемпионат Абхазии',
-    status: 'scheduled'
-  },
-  {
-    id: '2',
-    homeTeam: 'Гудаута',
-    awayTeam: 'Рица',
-    date: '01.04.2024',
-    time: '16:00',
-    venue: 'Стадион им. Даура Ахвледиани',
-    competition: 'Кубок Абхазии',
-    status: 'scheduled'
-  },
-  {
-    id: '3',
-    homeTeam: 'Афон',
-    awayTeam: 'Гудаута',
-    date: '10.04.2024',
-    time: '17:00',
-    venue: 'Стадион "Афон Арена"',
-    competition: 'Чемпионат Абхазии',
-    status: 'scheduled'
-  }
-];
-
 export const useMatches = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -181,6 +147,7 @@ export const useMatches = () => {
     } catch (error) {
       console.error('Error adding match:', error);
       setError('Ошибка добавления матча');
+      throw error;
     }
   };
 
@@ -198,6 +165,7 @@ export const useMatches = () => {
     } catch (error) {
       console.error('Error updating match:', error);
       setError('Ошибка обновления матча');
+      throw error;
     }
   };
 
@@ -213,6 +181,7 @@ export const useMatches = () => {
     } catch (error) {
       console.error('Error deleting match:', error);
       setError('Ошибка удаления матча');
+      throw error;
     }
   };
 
@@ -223,5 +192,6 @@ export const useMatches = () => {
     addMatch,
     updateMatch,
     deleteMatch,
+    saveMatches
   };
 }; 

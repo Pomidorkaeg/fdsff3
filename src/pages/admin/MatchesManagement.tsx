@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus, Calendar, Trophy, Edit, Trash, Clock, MapPin } from 'lucide-react';
+import { Plus, Calendar, Trophy, Edit, Trash, Clock, MapPin, AlertCircle } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 import {
   Dialog,
@@ -21,7 +21,7 @@ import { Input } from '@/components/ui/input';
 import { useMatches, Match } from '@/hooks/useMatches';
 
 const MatchesManagement: React.FC = () => {
-  const { matches, addMatch, updateMatch, deleteMatch, isLoading } = useMatches();
+  const { matches, addMatch, updateMatch, deleteMatch, isLoading, error } = useMatches();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingMatch, setEditingMatch] = useState<Match | null>(null);
   const [formData, setFormData] = useState<Partial<Match>>({
@@ -86,18 +86,46 @@ const MatchesManagement: React.FC = () => {
     }));
   };
 
+  const validateForm = () => {
+    if (!formData.homeTeam || !formData.awayTeam || !formData.date || !formData.time || !formData.venue || !formData.competition) {
+      toast({
+        title: "Ошибка",
+        description: "Пожалуйста, заполните все обязательные поля",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Validate date format (DD.MM.YYYY)
+    const dateRegex = /^\d{2}\.\d{2}\.\d{4}$/;
+    if (!dateRegex.test(formData.date)) {
+      toast({
+        title: "Ошибка",
+        description: "Дата должна быть в формате ДД.ММ.ГГГГ",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Validate time format (HH:MM)
+    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(formData.time)) {
+      toast({
+        title: "Ошибка",
+        description: "Время должно быть в формате ЧЧ:ММ",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      if (!formData.homeTeam || !formData.awayTeam || !formData.date || !formData.time || !formData.venue || !formData.competition) {
-        toast({
-          title: "Ошибка",
-          description: "Пожалуйста, заполните все обязательные поля",
-          variant: "destructive",
-        });
-        return;
-      }
+    if (!validateForm()) return;
 
+    try {
       const matchData: Match = {
         id: editingMatch?.id || Date.now().toString(),
         homeTeam: formData.homeTeam,
@@ -136,6 +164,16 @@ const MatchesManagement: React.FC = () => {
 
   const handleDelete = async (matchId: string) => {
     try {
+      const matchToDelete = matches.find(m => m.id === matchId);
+      if (!matchToDelete) {
+        toast({
+          title: "Ошибка",
+          description: "Матч не найден",
+          variant: "destructive",
+        });
+        return;
+      }
+
       await deleteMatch(matchId);
       toast({
         title: "Успех",
@@ -152,7 +190,27 @@ const MatchesManagement: React.FC = () => {
   };
 
   if (isLoading) {
-    return <div>Загрузка...</div>;
+    return (
+      <div className="flex justify-center items-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-fc-green"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 text-center">
+        <AlertCircle className="h-8 w-8 text-red-500 mb-2" />
+        <p className="text-red-500">{error}</p>
+        <Button
+          variant="outline"
+          className="mt-4"
+          onClick={() => window.location.reload()}
+        >
+          Обновить страницу
+        </Button>
+      </div>
+    );
   }
 
   return (
@@ -228,6 +286,7 @@ const MatchesManagement: React.FC = () => {
                   value={formData.homeTeam}
                   onChange={handleInputChange}
                   className="col-span-3"
+                  required
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -240,6 +299,7 @@ const MatchesManagement: React.FC = () => {
                   value={formData.awayTeam}
                   onChange={handleInputChange}
                   className="col-span-3"
+                  required
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -249,10 +309,11 @@ const MatchesManagement: React.FC = () => {
                 <Input
                   id="date"
                   name="date"
-                  type="date"
                   value={formData.date}
                   onChange={handleInputChange}
                   className="col-span-3"
+                  placeholder="ДД.ММ.ГГГГ"
+                  required
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -262,10 +323,11 @@ const MatchesManagement: React.FC = () => {
                 <Input
                   id="time"
                   name="time"
-                  type="time"
                   value={formData.time}
                   onChange={handleInputChange}
                   className="col-span-3"
+                  placeholder="ЧЧ:ММ"
+                  required
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -278,6 +340,7 @@ const MatchesManagement: React.FC = () => {
                   value={formData.venue}
                   onChange={handleInputChange}
                   className="col-span-3"
+                  required
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -290,6 +353,7 @@ const MatchesManagement: React.FC = () => {
                   value={formData.competition}
                   onChange={handleInputChange}
                   className="col-span-3"
+                  required
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
