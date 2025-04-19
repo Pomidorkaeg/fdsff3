@@ -21,7 +21,6 @@ export interface Match {
 export const useMatches = () => {
   const [matches, setMatches] = useState<Match[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isApiAvailable, setIsApiAvailable] = useState(true);
 
   useEffect(() => {
     const loadMatches = async () => {
@@ -36,13 +35,9 @@ export const useMatches = () => {
         
         if (apiMatches && apiMatches.length > 0) {
           setMatches(apiMatches);
-          setIsApiAvailable(true);
-        } else {
-          setIsApiAvailable(false);
         }
       } catch (err) {
         console.error('Error loading matches:', err);
-        setIsApiAvailable(false);
       } finally {
         setIsLoading(false);
       }
@@ -95,7 +90,6 @@ export const useMatches = () => {
     matches,
     setMatches,
     isLoading,
-    isApiAvailable,
     addMatch: handleAddMatch,
     updateMatch: handleUpdateMatch,
     deleteMatch: handleDeleteMatch,

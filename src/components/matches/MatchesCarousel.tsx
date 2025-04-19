@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Calendar, Trophy, MapPin, AlertCircle, Clock, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Trophy, MapPin, Clock, Loader2 } from 'lucide-react';
 import { useMatches } from '@/hooks/useMatches';
 import { Match } from '@/hooks/useMatches';
 import { format } from 'date-fns';
