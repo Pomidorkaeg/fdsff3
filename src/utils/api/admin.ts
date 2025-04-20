@@ -2,6 +2,8 @@ import { getAuthHeaders } from './auth';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://api.fcgudauta.ru';
 
+const STORAGE_KEY = 'fc_admin_shared_data';
+
 export interface Admin {
   id: string;
   username: string;
@@ -92,12 +94,21 @@ export const syncAdminData = async (): Promise<void> => {
 };
 
 export interface SharedAdminData {
-  matches: Match[];
-  news: News[];
-  teams: Team[];
-  media: Media[];
+  matches: any[];
+  news: any[];
+  teams: any[];
+  media: any[];
   lastUpdated: string;
 }
+
+const getLocalSharedData = (): SharedAdminData | null => {
+  const data = localStorage.getItem(STORAGE_KEY);
+  return data ? JSON.parse(data) : null;
+};
+
+const saveLocalSharedData = (data: SharedAdminData) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+};
 
 export const getSharedAdminData = async (): Promise<SharedAdminData> => {
   try {
@@ -109,9 +120,15 @@ export const getSharedAdminData = async (): Promise<SharedAdminData> => {
       throw new Error('Ошибка получения общих данных');
     }
 
-    return await response.json();
+    const data = await response.json();
+    saveLocalSharedData(data);
+    return data;
   } catch (error) {
     console.error('Error fetching shared admin data:', error);
+    const localData = getLocalSharedData();
+    if (localData) {
+      return localData;
+    }
     throw error;
   }
 };
@@ -130,8 +147,16 @@ export const updateSharedAdminData = async (data: Partial<SharedAdminData>): Pro
     if (!response.ok) {
       throw new Error('Ошибка обновления общих данных');
     }
+
+    const updatedData = await response.json();
+    saveLocalSharedData(updatedData);
   } catch (error) {
     console.error('Error updating shared admin data:', error);
+    const currentData = getLocalSharedData();
+    if (currentData) {
+      const newData = { ...currentData, ...data, lastUpdated: new Date().toISOString() };
+      saveLocalSharedData(newData);
+    }
     throw error;
   }
 };
@@ -141,6 +166,7 @@ export const subscribeToAdminUpdates = (callback: (data: SharedAdminData) => voi
   
   eventSource.onmessage = (event) => {
     const data = JSON.parse(event.data);
+    saveLocalSharedData(data);
     callback(data);
   };
 

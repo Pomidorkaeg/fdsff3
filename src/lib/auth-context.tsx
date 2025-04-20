@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { loginAdmin, logoutAdmin, getCurrentAdmin, isAdminAuthenticated, syncAdminData, Admin, SharedAdminData, getSharedAdminData, subscribeToAdminUpdates } from '@/utils/api/admin';
+import { loginAdmin, logoutAdmin, getCurrentAdmin, isAdminAuthenticated, Admin, SharedAdminData, getSharedAdminData, subscribeToAdminUpdates, updateSharedAdminData } from '@/utils/api/admin';
 
 interface AuthContextType {
   isAuthenticated: boolean;
