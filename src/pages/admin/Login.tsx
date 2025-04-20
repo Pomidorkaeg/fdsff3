@@ -22,11 +22,9 @@ const Login: React.FC = () => {
       const success = await login(username, password);
       if (success) {
         navigate('/admin');
-      } else {
-        setError('Неверные учетные данные');
       }
     } catch (err) {
-      setError('Произошла ошибка при входе. Пожалуйста, попробуйте позже.');
+      setError('Неверные учетные данные');
     } finally {
       setIsLoading(false);
     }

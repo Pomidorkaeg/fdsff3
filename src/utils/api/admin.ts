@@ -34,6 +34,7 @@ export const loginAdmin = async (username: string, password: string): Promise<Ad
     return response;
   }
 
+  // If not default credentials, try API login
   try {
     const response = await fetch(`${API_URL}/api/admin/login`, {
       method: 'POST',
@@ -53,7 +54,7 @@ export const loginAdmin = async (username: string, password: string): Promise<Ad
     return data;
   } catch (error) {
     console.error('Error logging in admin:', error);
-    throw error;
+    throw new Error('Неверные учетные данные');
   }
 };
 
