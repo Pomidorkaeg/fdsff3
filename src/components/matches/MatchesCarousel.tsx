@@ -1,44 +1,47 @@
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/card';
+import { useSite } from '@/lib/site-context';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Calendar, Trophy, MapPin, Clock, Loader2, AlertCircle } from 'lucide-react';
-import { useMatches } from '@/hooks/useMatches';
-import { Match } from '@/hooks/useMatches';
-import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 
-export const MatchesCarousel = () => {
-  const { matches, isLoading, error } = useMatches();
+const MatchesCarousel: React.FC = () => {
+  const { data, isLoading, error, refreshData } = useSite();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    if (matches.length > 0) {
-      const timer = setInterval(() => {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % matches.length);
-      }, 5000);
-      return () => clearInterval(timer);
+  const matches = data?.matches || [];
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshData();
+      toast.success('Данные обновлены');
+    } catch (err) {
+      toast.error('Ошибка при обновлении данных');
+    } finally {
+      setIsRefreshing(false);
     }
-  }, [matches]);
-
-  const handlePrev = () => {
-    if (isAnimating) return;
-    setIsAnimating(true);
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + matches.length) % matches.length);
-    setTimeout(() => setIsAnimating(false), 500);
   };
 
-  const handleNext = () => {
+  const nextMatch = () => {
     if (isAnimating) return;
     setIsAnimating(true);
     setCurrentIndex((prevIndex) => (prevIndex + 1) % matches.length);
     setTimeout(() => setIsAnimating(false), 500);
   };
 
+  const prevMatch = () => {
+    if (isAnimating) return;
+    setIsAnimating(true);
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + matches.length) % matches.length);
+    setTimeout(() => setIsAnimating(false), 500);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <Loader2 className="w-8 h-8 animate-spin text-fc-green" />
       </div>
     );
   }
@@ -46,9 +49,9 @@ export const MatchesCarousel = () => {
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="flex flex-col items-center space-y-2">
-          <AlertCircle className="w-8 h-8 text-destructive" />
-          <p className="text-destructive">{error}</p>
+        <div className="flex items-center text-red-500">
+          <AlertCircle className="w-5 h-5 mr-2" />
+          <span>{error}</span>
         </div>
       </div>
     );
@@ -57,7 +60,7 @@ export const MatchesCarousel = () => {
   if (matches.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Нет запланированных матчей</p>
+        <p className="text-gray-500">Нет запланированных матчей</p>
       </div>
     );
   }
@@ -66,71 +69,52 @@ export const MatchesCarousel = () => {
 
   return (
     <div className="relative w-full max-w-4xl mx-auto">
-      <Card className="p-6">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold">{currentMatch.competition}</h3>
-            <p className="text-sm text-muted-foreground">{currentMatch.venue}</p>
+      <div className="relative overflow-hidden rounded-lg shadow-lg bg-white">
+        <div className="p-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-gray-900">
+              {currentMatch.homeTeam} vs {currentMatch.awayTeam}
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Обновить
+            </Button>
           </div>
           
-          <div className="flex items-center justify-center space-x-8">
-            <div className="text-center">
-              <p className="text-xl font-bold">{currentMatch.homeTeam}</p>
-              {currentMatch.status === 'finished' && currentMatch.score && (
-                <div className="flex items-center justify-center space-x-2">
-                  <span className="font-bold">
-                    {currentMatch.score.home} - {currentMatch.score.away}
-                  </span>
-                </div>
-              )}
-            </div>
-            
-            <div className="text-center">
-              <p className="text-lg font-medium">{currentMatch.date}</p>
-              <p className="text-lg font-medium">{currentMatch.time}</p>
-              <div className={`mt-2 px-3 py-1 rounded-full text-sm ${
-                currentMatch.status === 'scheduled' ? 'bg-yellow-100 text-yellow-800' :
-                currentMatch.status === 'live' ? 'bg-green-100 text-green-800 animate-pulse' :
-                'bg-gray-100 text-gray-800'
-              }`}>
-                {currentMatch.status === 'scheduled' ? 'Запланирован' :
-                 currentMatch.status === 'live' ? 'В прямом эфире' :
-                 'Завершен'}
-              </div>
-            </div>
-            
-            <div className="text-center">
-              <p className="text-xl font-bold">{currentMatch.awayTeam}</p>
-              {currentMatch.status === 'finished' && currentMatch.score && (
-                <div className="flex items-center justify-center space-x-2">
-                  <span className="font-bold">
-                    {currentMatch.score.home} - {currentMatch.score.away}
-                  </span>
-                </div>
-              )}
-            </div>
+          <div className="text-gray-600">
+            <p>Место проведения: {currentMatch.venue}</p>
+            <p>Турнир: {currentMatch.competition}</p>
+            {currentMatch.score && (
+              <p className="mt-2 text-lg font-semibold">
+                Счет: {currentMatch.score.home} - {currentMatch.score.away}
+              </p>
+            )}
           </div>
         </div>
-      </Card>
+      </div>
 
-      {matches.length > 1 && (
-        <div className="absolute top-4 right-4 flex space-x-2">
-          <button
-            onClick={handlePrev}
-            disabled={isAnimating}
-            className="p-2 rounded-full bg-background hover:bg-accent"
-          >
-            ←
-          </button>
-          <button
-            onClick={handleNext}
-            disabled={isAnimating}
-            className="p-2 rounded-full bg-background hover:bg-accent"
-          >
-            →
-          </button>
-        </div>
-      )}
+      <div className="flex justify-between mt-4">
+        <Button
+          onClick={prevMatch}
+          disabled={isAnimating || matches.length <= 1}
+          className="bg-fc-green hover:bg-fc-darkGreen text-white"
+        >
+          Предыдущий
+        </Button>
+        <Button
+          onClick={nextMatch}
+          disabled={isAnimating || matches.length <= 1}
+          className="bg-fc-green hover:bg-fc-darkGreen text-white"
+        >
+          Следующий
+        </Button>
+      </div>
     </div>
   );
 };
