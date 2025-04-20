@@ -2,20 +2,43 @@ import { Team } from '../../types/team';
 import { getAuthHeaders } from './auth';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://api.fcgudauta.ru';
+const TIMEOUT = 5000; // 5 seconds timeout
+
+const fetchWithTimeout = async (url: string, options: RequestInit): Promise<Response> => {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    throw error;
+  }
+};
 
 export const fetchTeams = async (): Promise<Team[]> => {
   try {
-    const response = await fetch(`${API_URL}/teams`, {
+    const response = await fetchWithTimeout(`${API_URL}/teams`, {
       headers: getAuthHeaders(),
     });
 
     if (!response.ok) {
-      throw new Error('Failed to fetch teams');
+      throw new Error(`Failed to fetch teams: ${response.statusText}`);
     }
 
     return await response.json();
   } catch (error) {
     console.error('Error fetching teams:', error);
+    if (error instanceof Error) {
+      if (error.name === 'AbortError') {
+        throw new Error('Превышено время ожидания ответа от сервера');
+      }
+    }
     throw error;
   }
 };
