@@ -1,22 +1,44 @@
-
 export interface Team {
   id: string;
   name: string;
   shortName: string;
-  logo: string;
-  primaryColor: string;
-  secondaryColor: string;
-  description: string;
-  foundedYear: number;
+  founded: number;
+  country: string;
+  city: string;
   stadium: string;
-  achievements: string[];
-  coach: string;
-  address: string;
-  socialLinks: {
-    website?: string;
-    facebook?: string;
+  capacity: number;
+  colors: {
+    primary: string;
+    secondary: string;
+    accent: string;
+  };
+  logo: string;
+  website?: string;
+  socialMedia?: {
     instagram?: string;
     twitter?: string;
+    facebook?: string;
+    youtube?: string;
   };
-  backgroundImage: string;
+  coach: {
+    name: string;
+    nationality: string;
+    dateOfBirth: string;
+    contractEndDate?: string;
+  };
+  players: string[]; // Array of player IDs
+  staff?: {
+    position: string;
+    name: string;
+    nationality: string;
+  }[];
+  achievements?: {
+    title: string;
+    year: number;
+    description?: string;
+  }[];
+  isActive: boolean;
+  league?: string;
+  division?: string;
+  season?: string;
 }
