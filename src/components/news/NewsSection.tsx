@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useSite } from '@/lib/site-context';
+import { useNews } from '@/hooks/useNews';
 import { Card } from '@/components/ui/card';
 import { Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { format } from 'date-fns';
@@ -8,16 +8,14 @@ import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
 const NewsSection: React.FC = () => {
-  const { data, isLoading, error, refreshData } = useSite();
+  const { news, loading, error } = useNews();
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const news = data?.news || [];
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await refreshData();
-      toast.success('Данные обновлены');
+      // Reload the page to refresh data
+      window.location.reload();
     } catch (err) {
       toast.error('Ошибка при обновлении данных');
     } finally {
@@ -25,7 +23,7 @@ const NewsSection: React.FC = () => {
     }
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-fc-green" />
