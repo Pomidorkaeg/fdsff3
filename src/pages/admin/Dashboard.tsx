@@ -1,13 +1,14 @@
 import React, { useEffect } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { Users, Trophy, Settings, LogOut, Users2, Shield, Newspaper, Image, Calendar, User } from 'lucide-react';
+import { Users, Trophy, Settings, LogOut, Users2, Shield, Newspaper, Image, Calendar, User, RefreshCw } from 'lucide-react';
 import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 
 const AdminDashboard = () => {
-  const { logout, admin, syncData } = useAuth();
+  const { logout, admin, sharedData, syncData, updateSharedData } = useAuth();
   const navigate = useNavigate();
+  const [isSyncing, setIsSyncing] = React.useState(false);
 
   useEffect(() => {
     const syncInterval = setInterval(async () => {
@@ -27,6 +28,7 @@ const AdminDashboard = () => {
   };
 
   const handleSync = async () => {
+    setIsSyncing(true);
     try {
       await syncData();
       toast({
@@ -39,6 +41,8 @@ const AdminDashboard = () => {
         description: 'Не удалось синхронизировать данные',
         variant: 'destructive',
       });
+    } finally {
+      setIsSyncing(false);
     }
   };
 
@@ -62,9 +66,11 @@ const AdminDashboard = () => {
               <Button
                 variant="ghost"
                 onClick={handleSync}
+                disabled={isSyncing}
                 className="text-white hover:text-gray-200 text-sm flex items-center bg-white/10 px-4 py-2 rounded-full transition-all hover:bg-white/20"
               >
-                <span>Синхронизировать</span>
+                <RefreshCw className={`w-4 h-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                <span>{isSyncing ? 'Синхронизация...' : 'Синхронизировать'}</span>
               </Button>
               <Link 
                 to="/" 
@@ -90,6 +96,11 @@ const AdminDashboard = () => {
         <aside className="w-72 bg-white shadow-lg rounded-tr-xl rounded-br-xl overflow-hidden m-4 mr-0">
           <div className="p-6 border-b border-gray-100">
             <h2 className="text-lg font-bold text-gray-800">Панель управления</h2>
+            {sharedData && (
+              <p className="text-sm text-gray-500 mt-1">
+                Последнее обновление: {new Date(sharedData.lastUpdated).toLocaleString()}
+              </p>
+            )}
           </div>
           <nav className="p-4">
             <div className="mb-6">

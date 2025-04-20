@@ -88,4 +88,65 @@ export const syncAdminData = async (): Promise<void> => {
     console.error('Error syncing admin data:', error);
     throw error;
   }
+};
+
+export interface SharedAdminData {
+  matches: Match[];
+  news: News[];
+  teams: Team[];
+  media: Media[];
+  lastUpdated: string;
+}
+
+export const getSharedAdminData = async (): Promise<SharedAdminData> => {
+  try {
+    const response = await fetch(`${API_URL}/api/admin/shared-data`, {
+      headers: getAuthHeaders(),
+    });
+
+    if (!response.ok) {
+      throw new Error('Ошибка получения общих данных');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching shared admin data:', error);
+    throw error;
+  }
+};
+
+export const updateSharedAdminData = async (data: Partial<SharedAdminData>): Promise<void> => {
+  try {
+    const response = await fetch(`${API_URL}/api/admin/shared-data`, {
+      method: 'PUT',
+      headers: {
+        ...getAuthHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error('Ошибка обновления общих данных');
+    }
+  } catch (error) {
+    console.error('Error updating shared admin data:', error);
+    throw error;
+  }
+};
+
+export const subscribeToAdminUpdates = (callback: (data: SharedAdminData) => void): (() => void) => {
+  const eventSource = new EventSource(`${API_URL}/api/admin/updates`);
+  
+  eventSource.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    callback(data);
+  };
+
+  eventSource.onerror = (error) => {
+    console.error('Error in admin updates subscription:', error);
+    eventSource.close();
+  };
+
+  return () => eventSource.close();
 }; 
