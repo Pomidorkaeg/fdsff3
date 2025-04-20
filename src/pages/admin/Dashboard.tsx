@@ -1,15 +1,45 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link, Outlet, useNavigate } from 'react-router-dom';
-import { Users, Trophy, Settings, LogOut, Users2, Shield, Newspaper, Image, Calendar } from 'lucide-react';
-import { useAuth } from '../../lib/auth-context';
+import { Users, Trophy, Settings, LogOut, Users2, Shield, Newspaper, Image, Calendar, User } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/components/ui/use-toast';
 
 const AdminDashboard = () => {
-  const { logout } = useAuth();
+  const { logout, admin, syncData } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const syncInterval = setInterval(async () => {
+      try {
+        await syncData();
+      } catch (error) {
+        console.error('Error syncing data:', error);
+      }
+    }, 30000); // Sync every 30 seconds
+
+    return () => clearInterval(syncInterval);
+  }, [syncData]);
 
   const handleLogout = () => {
     logout();
     navigate('/admin/login');
+  };
+
+  const handleSync = async () => {
+    try {
+      await syncData();
+      toast({
+        title: 'Данные синхронизированы',
+        description: 'Все изменения успешно обновлены',
+      });
+    } catch (error) {
+      toast({
+        title: 'Ошибка синхронизации',
+        description: 'Не удалось синхронизировать данные',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -23,19 +53,33 @@ const AdminDashboard = () => {
               <span className="text-white font-bold text-xl">ФК Гудаута Админ</span>
             </div>
             <div className="flex items-center gap-4">
+              {admin && (
+                <div className="flex items-center text-white">
+                  <User className="w-5 h-5 mr-2" />
+                  <span>{admin.username}</span>
+                </div>
+              )}
+              <Button
+                variant="ghost"
+                onClick={handleSync}
+                className="text-white hover:text-gray-200 text-sm flex items-center bg-white/10 px-4 py-2 rounded-full transition-all hover:bg-white/20"
+              >
+                <span>Синхронизировать</span>
+              </Button>
               <Link 
                 to="/" 
                 className="text-white hover:text-gray-200 text-sm flex items-center bg-white/10 px-4 py-2 rounded-full transition-all hover:bg-white/20"
               >
                 <span>Вернуться на сайт</span>
               </Link>
-              <button
+              <Button
+                variant="ghost"
                 onClick={handleLogout}
                 className="text-white hover:text-gray-200 text-sm flex items-center bg-white/10 px-4 py-2 rounded-full transition-all hover:bg-white/20"
               >
                 <LogOut className="w-4 h-4 mr-2" />
                 <span>Выйти</span>
-              </button>
+              </Button>
             </div>
           </div>
         </div>

@@ -1,39 +1,66 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { loginAdmin, logoutAdmin, getCurrentAdmin, isAdminAuthenticated, syncAdminData, Admin } from '@/utils/api/admin';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  login: (username: string, password: string) => boolean;
+  admin: Admin | null;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
+  syncData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [admin, setAdmin] = useState<Admin | null>(null);
 
   useEffect(() => {
-    const storedAuth = localStorage.getItem('adminAuth');
-    if (storedAuth === 'true') {
-      setIsAuthenticated(true);
-    }
+    const checkAuth = async () => {
+      if (isAdminAuthenticated()) {
+        setIsAuthenticated(true);
+        setAdmin(getCurrentAdmin());
+        try {
+          await syncData();
+        } catch (error) {
+          console.error('Error syncing admin data:', error);
+        }
+      }
+    };
+
+    checkAuth();
   }, []);
 
-  const login = (username: string, password: string): boolean => {
-    if (username === 'admin' && password === '305a') {
+  const login = async (username: string, password: string): Promise<boolean> => {
+    try {
+      const response = await loginAdmin(username, password);
       setIsAuthenticated(true);
-      localStorage.setItem('adminAuth', 'true');
+      setAdmin(response.admin);
       return true;
+    } catch (error) {
+      console.error('Login error:', error);
+      return false;
     }
-    return false;
   };
 
   const logout = () => {
+    logoutAdmin();
     setIsAuthenticated(false);
-    localStorage.removeItem('adminAuth');
+    setAdmin(null);
+  };
+
+  const syncData = async () => {
+    try {
+      await syncAdminData();
+      setAdmin(getCurrentAdmin());
+    } catch (error) {
+      console.error('Sync error:', error);
+      throw error;
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, admin, login, logout, syncData }}>
       {children}
     </AuthContext.Provider>
   );
