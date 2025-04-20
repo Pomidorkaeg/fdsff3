@@ -1,36 +1,33 @@
+export type PlayerPosition = 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
+export type PreferredFoot = 'left' | 'right' | 'both';
+
 export interface Player {
   id: string;
   firstName: string;
   lastName: string;
+  position: PlayerPosition;
+  number?: number;
   dateOfBirth: string;
   nationality: string;
-  position: 'goalkeeper' | 'defender' | 'midfielder' | 'forward';
-  number?: number;
   height?: number;
   weight?: number;
-  preferredFoot?: 'left' | 'right' | 'both';
+  preferredFoot?: PreferredFoot;
   biography?: string;
   image?: string;
-  isActive: boolean;
-  team: string;
-  joinedDate: string;
   contractEndDate?: string;
+  isActive: boolean;
   stats?: {
     appearances: number;
     goals: number;
     assists: number;
     yellowCards: number;
     redCards: number;
-    cleanSheets?: number;
+    cleanSheets: number;
   };
   socialMedia?: {
-    instagram?: string;
     twitter?: string;
+    instagram?: string;
     facebook?: string;
   };
-  achievements?: {
-    title: string;
-    year: number;
-    description?: string;
-  }[];
+  achievements?: string[];
 }
