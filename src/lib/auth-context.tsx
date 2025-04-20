@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { loginAdmin, logoutAdmin, getCurrentAdmin, isAdminAuthenticated, Admin, SharedAdminData, getSharedAdminData, subscribeToAdminUpdates, updateSharedAdminData } from '@/utils/api/admin';
+import { loginAdmin, logoutAdmin, getCurrentAdmin, isAdminAuthenticated, Admin, SharedAdminData, getSharedAdminData, updateSharedAdminData } from '@/utils/api/admin';
+import { connectWebSocket, disconnectWebSocket, sendWebSocketMessage } from '@/utils/api/websocket';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -36,11 +37,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (isAuthenticated) {
-      const unsubscribe = subscribeToAdminUpdates((data) => {
-        setSharedData(data);
+      connectWebSocket((data) => {
+        if (data.type === 'sharedDataUpdate') {
+          setSharedData(data.data);
+        }
       });
 
-      return () => unsubscribe();
+      return () => {
+        disconnectWebSocket();
+      };
     }
   }, [isAuthenticated]);
 
@@ -62,6 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsAuthenticated(false);
     setAdmin(null);
     setSharedData(null);
+    disconnectWebSocket();
   };
 
   const syncData = async () => {
@@ -77,6 +83,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateSharedData = async (data: Partial<SharedAdminData>) => {
     try {
       await updateSharedAdminData(data);
+      sendWebSocketMessage('sharedDataUpdate', data);
       await syncData();
     } catch (error) {
       console.error('Update error:', error);
