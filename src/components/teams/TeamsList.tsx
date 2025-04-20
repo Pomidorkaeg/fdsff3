@@ -19,7 +19,7 @@ const TeamsList: React.FC = () => {
     return (
       <div className="flex flex-col items-center justify-center h-64 text-red-500">
         <AlertCircle className="h-8 w-8 mb-2" />
-        <p>Ошибка при загрузке команд</p>
+        <p>{error}</p>
       </div>
     );
   }
@@ -40,19 +40,23 @@ const TeamsList: React.FC = () => {
           className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
         >
           <div className="p-6">
-            <div className="flex items-center justify-center mb-4">
-              <img
-                src={team.logo}
-                alt={team.name}
-                className="h-24 w-24 object-contain"
-              />
-            </div>
+            {team.logo && (
+              <div className="flex items-center justify-center mb-4">
+                <img
+                  src={team.logo}
+                  alt={team.name}
+                  className="h-24 w-24 object-contain"
+                />
+              </div>
+            )}
             <h3 className="text-xl font-semibold text-center mb-2">{team.name}</h3>
-            <p className="text-gray-600 text-center mb-4">{team.description}</p>
             <div className="space-y-2">
-              <p><span className="font-medium">Тренер:</span> {team.coach}</p>
-              <p><span className="font-medium">Год основания:</span> {team.foundedYear}</p>
+              {team.coach && (
+                <p><span className="font-medium">Тренер:</span> {team.coach}</p>
+              )}
+              <p><span className="font-medium">Год основания:</span> {team.founded}</p>
               <p><span className="font-medium">Стадион:</span> {team.stadium}</p>
+              <p><span className="font-medium">Город:</span> {team.city}</p>
             </div>
             {team.stats && (
               <div className="mt-4 pt-4 border-t">
@@ -62,8 +66,8 @@ const TeamsList: React.FC = () => {
                   <p>Победы: {team.stats.wins}</p>
                   <p>Ничьи: {team.stats.draws}</p>
                   <p>Поражения: {team.stats.losses}</p>
-                  <p>Забито: {team.stats.goalsScored}</p>
-                  <p>Пропущено: {team.stats.goalsConceded}</p>
+                  <p>Забито: {team.stats.goalsFor}</p>
+                  <p>Пропущено: {team.stats.goalsAgainst}</p>
                 </div>
               </div>
             )}
