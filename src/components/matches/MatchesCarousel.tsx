@@ -1,27 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useSite } from '@/lib/site-context';
+import { useMatches } from '@/hooks/useMatches';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 const MatchesCarousel: React.FC = () => {
-  const { data, isLoading, error, refreshData } = useSite();
+  const { matches, loading, error } = useMatches();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  const matches = data?.matches || [];
 
   useEffect(() => {
     // Reset index when matches change
     setCurrentIndex(0);
   }, [matches]);
 
-  const handleRefresh = async () => {
+  const handleRefresh = () => {
     setIsRefreshing(true);
     try {
-      await refreshData();
-      toast.success('Данные обновлены');
+      // Reload the page to refresh data
+      window.location.reload();
     } catch (err) {
       toast.error('Ошибка при обновлении данных');
     } finally {
@@ -43,7 +41,7 @@ const MatchesCarousel: React.FC = () => {
     setTimeout(() => setIsAnimating(false), 500);
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-fc-green" />
@@ -107,34 +105,47 @@ const MatchesCarousel: React.FC = () => {
               Обновить
             </Button>
           </div>
-          
-          <div className="text-gray-600">
-            <p>Место проведения: {currentMatch.venue}</p>
-            <p>Турнир: {currentMatch.competition}</p>
-            {currentMatch.score && (
-              <p className="mt-2 text-lg font-semibold">
-                Счет: {currentMatch.score.home} - {currentMatch.score.away}
-              </p>
-            )}
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="text-center">
+              <p className="text-sm text-gray-500">Дата</p>
+              <p className="font-medium">{currentMatch.date}</p>
+            </div>
+            <div className="text-center">
+              <p className="text-sm text-gray-500">Время</p>
+              <p className="font-medium">{currentMatch.time}</p>
+            </div>
+          </div>
+          <div className="text-center mb-4">
+            <p className="text-sm text-gray-500">Место проведения</p>
+            <p className="font-medium">{currentMatch.venue}</p>
+          </div>
+          <div className="text-center">
+            <p className="text-sm text-gray-500">Турнир</p>
+            <p className="font-medium">{currentMatch.competition}</p>
           </div>
         </div>
-      </div>
-
-      <div className="flex justify-between mt-4">
-        <Button
-          onClick={prevMatch}
-          disabled={isAnimating || matches.length <= 1}
-          className="bg-fc-green hover:bg-fc-darkGreen text-white"
-        >
-          Предыдущий
-        </Button>
-        <Button
-          onClick={nextMatch}
-          disabled={isAnimating || matches.length <= 1}
-          className="bg-fc-green hover:bg-fc-darkGreen text-white"
-        >
-          Следующий
-        </Button>
+        {matches.length > 1 && (
+          <div className="absolute bottom-0 left-0 right-0 flex justify-between p-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={prevMatch}
+              disabled={isAnimating}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              Назад
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={nextMatch}
+              disabled={isAnimating}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              Вперед
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
