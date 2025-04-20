@@ -9,12 +9,16 @@ const MatchesCarousel: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
 
   useEffect(() => {
-    if (!loading && matches.length > 0) {
-      setCurrentIndex(0);
+    if (!loading && !hasInitialized) {
+      setHasInitialized(true);
+      if (matches.length > 0) {
+        setCurrentIndex(0);
+      }
     }
-  }, [matches, loading]);
+  }, [loading, matches, hasInitialized]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -41,7 +45,7 @@ const MatchesCarousel: React.FC = () => {
     setTimeout(() => setIsAnimating(false), 500);
   };
 
-  if (loading) {
+  if (loading && !hasInitialized) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-fc-green" />

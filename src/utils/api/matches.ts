@@ -30,9 +30,6 @@ export const saveLocalMatches = (matches: Match[]): void => {
 };
 
 export const fetchMatches = async (): Promise<Match[]> => {
-  // Сначала получаем данные из локального хранилища
-  const localMatches = getLocalMatches();
-  
   try {
     // Пытаемся получить данные из API
     const response = await fetch(`${API_URL}/api/matches`, {
@@ -49,9 +46,11 @@ export const fetchMatches = async (): Promise<Match[]> => {
     }
     
     // Если API недоступен или вернул пустой список, используем локальные данные
+    const localMatches = getLocalMatches();
     return localMatches;
   } catch (error) {
     console.log('Error fetching from API, using local storage:', error);
+    const localMatches = getLocalMatches();
     return localMatches;
   }
 };

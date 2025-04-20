@@ -1,3 +1,5 @@
+export type MatchStatus = 'scheduled' | 'live' | 'finished' | 'postponed' | 'cancelled';
+
 export interface Match {
   id: string;
   homeTeam: string; // Team ID
@@ -6,7 +8,7 @@ export interface Match {
   time: string;
   venue: string;
   competition: string;
-  status: 'scheduled' | 'live' | 'finished' | 'postponed' | 'cancelled';
+  status: MatchStatus;
   score?: {
     home: number;
     away: number;
