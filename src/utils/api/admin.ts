@@ -15,6 +15,25 @@ export interface AdminAuthResponse {
 }
 
 export const loginAdmin = async (username: string, password: string): Promise<AdminAuthResponse> => {
+  // Check for default admin credentials
+  if (username === 'admin' && password === '305a') {
+    const defaultAdmin: Admin = {
+      id: '1',
+      username: 'admin',
+      role: 'superadmin',
+      lastLogin: new Date().toISOString()
+    };
+    
+    const response = {
+      token: 'default-admin-token',
+      admin: defaultAdmin
+    };
+    
+    localStorage.setItem('adminToken', response.token);
+    localStorage.setItem('adminData', JSON.stringify(response.admin));
+    return response;
+  }
+
   try {
     const response = await fetch(`${API_URL}/api/admin/login`, {
       method: 'POST',
