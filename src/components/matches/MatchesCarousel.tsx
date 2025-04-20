@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useMatches } from '@/hooks/useMatches';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, Loader2, RefreshCw } from 'lucide-react';
+import { AlertCircle, Loader2, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 const MatchesCarousel: React.FC = () => {
@@ -37,15 +37,18 @@ const MatchesCarousel: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-fc-green" />
+      <div className="flex items-center justify-center h-64 bg-white rounded-lg shadow-lg">
+        <div className="flex flex-col items-center space-y-4">
+          <Loader2 className="w-8 h-8 animate-spin text-fc-green" />
+          <p className="text-gray-500">Загрузка матчей...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+      <div className="flex flex-col items-center justify-center h-64 bg-white rounded-lg shadow-lg space-y-4">
         <div className="flex items-center text-red-500">
           <AlertCircle className="w-5 h-5 mr-2" />
           <span>{error}</span>
@@ -64,7 +67,7 @@ const MatchesCarousel: React.FC = () => {
 
   if (matches.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+      <div className="flex flex-col items-center justify-center h-64 bg-white rounded-lg shadow-lg space-y-4">
         <p className="text-gray-500">Нет запланированных матчей</p>
         <Button
           onClick={handleRefresh}
@@ -118,6 +121,30 @@ const MatchesCarousel: React.FC = () => {
             <p className="font-medium">{currentMatch.competition}</p>
           </div>
         </div>
+        {matches.length > 1 && (
+          <div className="absolute bottom-0 left-0 right-0 flex justify-between p-4">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={prevMatch}
+              disabled={isAnimating}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Назад
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={nextMatch}
+              disabled={isAnimating}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              Вперед
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

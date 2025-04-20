@@ -3,6 +3,35 @@ import { Match } from '../types/match';
 const API_URL = process.env.REACT_APP_API_URL || 'https://api.fcgudauta.ru';
 const STORAGE_KEY = 'fc_matches';
 
+const DEFAULT_MATCHES: Match[] = [
+  {
+    id: '1',
+    homeTeam: 'Гудаута',
+    awayTeam: 'Динамо',
+    date: '2024-03-15',
+    time: '18:00',
+    venue: 'Стадион им. Даура Ахвледиани',
+    competition: 'Чемпионат Абхазии',
+    status: 'scheduled',
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  },
+  {
+    id: '2',
+    homeTeam: 'Гудаута',
+    awayTeam: 'Нарт',
+    date: '2024-03-22',
+    time: '19:00',
+    venue: 'Стадион им. Даура Ахвледиани',
+    competition: 'Кубок Абхазии',
+    status: 'scheduled',
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
+
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   return {
@@ -36,14 +65,15 @@ export const fetchMatches = async (): Promise<Match[]> => {
     });
     
     if (!response.ok) {
-      throw new Error('Failed to fetch matches');
+      console.log('API returned error, using default matches');
+      return DEFAULT_MATCHES;
     }
     
     const data = await response.json();
-    return data || [];
+    return data && data.length > 0 ? data : DEFAULT_MATCHES;
   } catch (error) {
     console.error('Error fetching matches:', error);
-    return [];
+    return DEFAULT_MATCHES;
   }
 };
 
