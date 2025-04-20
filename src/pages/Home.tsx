@@ -1,19 +1,41 @@
 import React from 'react';
-import MatchesCarousel from '@/components/matches/MatchesCarousel';
-import NewsSection from '@/components/news/NewsSection';
+import { Link } from 'react-router-dom';
 
-const Home: React.FC = () => {
+const Home = () => {
   return (
-    <div className="container mx-auto px-4 py-8">
-      <section className="mb-12">
-        <h2 className="text-3xl font-bold mb-6">Ближайшие матчи</h2>
-        <MatchesCarousel />
+    <div className="space-y-8">
+      <section className="text-center">
+        <h1 className="text-4xl font-bold mb-4">Добро пожаловать на сайт ФК Гудаута</h1>
+        <p className="text-xl text-gray-600">
+          Следите за новостями, результатами матчей и информацией о команде
+        </p>
       </section>
-      
-      <section>
-        <h2 className="text-3xl font-bold mb-6">Последние новости</h2>
-        <NewsSection />
-      </section>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <Link
+          to="/matches"
+          className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
+        >
+          <h2 className="text-xl font-semibold mb-2">Матчи</h2>
+          <p className="text-gray-600">Расписание и результаты матчей</p>
+        </Link>
+
+        <Link
+          to="/players"
+          className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
+        >
+          <h2 className="text-xl font-semibold mb-2">Игроки</h2>
+          <p className="text-gray-600">Состав команды</p>
+        </Link>
+
+        <Link
+          to="/news"
+          className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow"
+        >
+          <h2 className="text-xl font-semibold mb-2">Новости</h2>
+          <p className="text-gray-600">Последние новости клуба</p>
+        </Link>
+      </div>
     </div>
   );
 };
