@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { SiteData, syncData, subscribeToUpdates } from '@/utils/api/sync';
+import { SiteData } from '@/types/site';
+import { syncData, subscribeToUpdates } from '@/utils/api/sync';
 import { useAuth } from './auth-context';
 
 interface SiteContextType {
@@ -25,13 +26,15 @@ export const SiteProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setData(newData);
       localStorage.setItem('siteData', JSON.stringify(newData));
     } catch (err) {
-      setError('Ошибка загрузки данных сайта');
       console.error('Error refreshing site data:', err);
       
       // Try to load from cache if API fails
       const cachedData = localStorage.getItem('siteData');
       if (cachedData) {
         setData(JSON.parse(cachedData));
+        setError('Используются сохраненные данные (API недоступен)');
+      } else {
+        setError('Ошибка загрузки данных сайта');
       }
     } finally {
       setIsLoading(false);
@@ -39,24 +42,38 @@ export const SiteProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
-    // Load initial data from cache
-    const cachedData = localStorage.getItem('siteData');
-    if (cachedData) {
-      setData(JSON.parse(cachedData));
-    }
+    let mounted = true;
+    let unsubscribe: (() => void) | undefined;
 
-    // Refresh data from API
-    refreshData();
+    const initializeData = async () => {
+      // Load initial data from cache
+      const cachedData = localStorage.getItem('siteData');
+      if (cachedData && mounted) {
+        setData(JSON.parse(cachedData));
+      }
 
-    // Subscribe to updates if authenticated
-    if (isAuthenticated) {
-      const unsubscribe = subscribeToUpdates((newData) => {
-        setData(newData);
-        localStorage.setItem('siteData', JSON.stringify(newData));
-      });
+      // Refresh data from API
+      await refreshData();
 
-      return () => unsubscribe();
-    }
+      // Subscribe to updates if authenticated
+      if (isAuthenticated && mounted) {
+        unsubscribe = subscribeToUpdates((newData) => {
+          if (mounted) {
+            setData(newData);
+            localStorage.setItem('siteData', JSON.stringify(newData));
+          }
+        });
+      }
+    };
+
+    initializeData();
+
+    return () => {
+      mounted = false;
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
   }, [isAuthenticated]);
 
   return (
