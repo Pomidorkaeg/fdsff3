@@ -1,101 +1,45 @@
-import { Suspense, lazy } from "react";
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "./lib/auth-context";
-import ProtectedRoute from "./components/ProtectedRoute";
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'sonner';
+import { AuthProvider } from '@/lib/auth-context';
+import { SiteProvider } from '@/lib/site-context';
+import Layout from '@/components/layout/Layout';
+import Home from '@/pages/Home';
+import Matches from '@/pages/Matches';
+import Teams from '@/pages/Teams';
+import News from '@/pages/News';
+import Players from '@/pages/Players';
+import Login from '@/pages/admin/Login';
+import Dashboard from '@/pages/admin/Dashboard';
+import MatchesManagement from '@/pages/admin/MatchesManagement';
+import TeamsManagement from '@/pages/admin/TeamsManagement';
+import NewsManagement from '@/pages/admin/NewsManagement';
+import PlayersManagement from '@/pages/admin/PlayersManagement';
 
-// Simple loading component
-const PageLoading = () => (
-  <div className="flex h-screen w-full items-center justify-center">
-    <div className="flex flex-col items-center gap-4">
-      <div className="h-10 w-10 animate-spin rounded-full border-4 border-fc-green border-t-transparent"></div>
-      <p className="text-fc-green">Загрузка...</p>
-    </div>
-  </div>
-);
-
-// Lazy load components
-const Index = lazy(() => import("./pages/Index"));
-const Team = lazy(() => import("./pages/Team"));
-const News = lazy(() => import("./pages/News"));
-const Matches = lazy(() => import("./pages/Matches"));
-const Tournaments = lazy(() => import("./pages/Tournaments"));
-const Media = lazy(() => import("./pages/Media"));
-const Contacts = lazy(() => import("./pages/Contacts"));
-const NotFound = lazy(() => import("./pages/NotFound"));
-
-// Admin routes
-const AdminDashboard = lazy(() => import("./pages/admin/Dashboard"));
-const AdminHome = lazy(() => import("./pages/admin/AdminHome"));
-const PlayersManagement = lazy(() => import("./pages/admin/PlayersManagement"));
-const CoachesManagement = lazy(() => import("./pages/admin/CoachesManagement"));
-const TeamsManagement = lazy(() => import("./pages/admin/TeamsManagement"));
-const NewsManagement = lazy(() => import("./pages/admin/NewsManagement"));
-const MediaManagement = lazy(() => import("./pages/admin/MediaManagement"));
-const MatchesManagement = lazy(() => import("./pages/admin/MatchesManagement"));
-const Login = lazy(() => import("./pages/admin/Login"));
-
-// Configure React Query client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 60 * 1000,
-      refetchOnWindowFocus: false,
-      retry: 2,
-      retryDelay: 1000
-    },
-  },
-});
-
-const App = () => {
+const App: React.FC = () => {
   return (
-    <QueryClientProvider client={queryClient}>
+    <Router>
       <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter basename="/fds">
-            <Suspense fallback={<PageLoading />}>
-              <Routes>
-                {/* Public routes */}
-                <Route path="/" element={<Index />} />
-                <Route path="/team" element={<Team />} />
-                <Route path="/news" element={<News />} />
-                <Route path="/matches" element={<Matches />} />
-                <Route path="/tournaments" element={<Tournaments />} />
-                <Route path="/tournaments/:id" element={<Tournaments />} />
-                <Route path="/media" element={<Media />} />
-                <Route path="/contacts" element={<Contacts />} />
-
-                {/* Admin routes */}
-                <Route path="/admin/login" element={<Login />} />
-                <Route path="/admin" element={
-                  <ProtectedRoute>
-                    <AdminDashboard />
-                  </ProtectedRoute>
-                }>
-                  <Route index element={<AdminHome />} />
-                  <Route path="players" element={<PlayersManagement />} />
-                  <Route path="coaches" element={<CoachesManagement />} />
-                  <Route path="teams" element={<TeamsManagement />} />
-                  <Route path="tournaments" element={<AdminHome />} />
-                  <Route path="news" element={<NewsManagement />} />
-                  <Route path="media" element={<MediaManagement />} />
-                  <Route path="matches" element={<MatchesManagement />} />
-                </Route>
-
-                {/* 404 and fallback routes */}
-                <Route path="/404" element={<NotFound />} />
-                <Route path="*" element={<Navigate to="/404" replace />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
-        </TooltipProvider>
+        <SiteProvider>
+          <Toaster position="top-right" />
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Home />} />
+              <Route path="matches" element={<Matches />} />
+              <Route path="teams" element={<Teams />} />
+              <Route path="news" element={<News />} />
+              <Route path="players" element={<Players />} />
+              <Route path="admin/login" element={<Login />} />
+              <Route path="admin" element={<Dashboard />} />
+              <Route path="admin/matches" element={<MatchesManagement />} />
+              <Route path="admin/teams" element={<TeamsManagement />} />
+              <Route path="admin/news" element={<NewsManagement />} />
+              <Route path="admin/players" element={<PlayersManagement />} />
+            </Route>
+          </Routes>
+        </SiteProvider>
       </AuthProvider>
-    </QueryClientProvider>
+    </Router>
   );
 };
 

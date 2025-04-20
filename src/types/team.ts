@@ -3,42 +3,40 @@ export interface Team {
   name: string;
   shortName: string;
   founded: number;
-  country: string;
-  city: string;
   stadium: string;
-  capacity: number;
+  city: string;
+  country: string;
+  logo: string;
   colors: {
     primary: string;
     secondary: string;
-    accent: string;
   };
-  logo: string;
+  coach: string;
   website?: string;
   socialMedia?: {
-    instagram?: string;
     twitter?: string;
     facebook?: string;
+    instagram?: string;
     youtube?: string;
   };
-  coach: {
-    name: string;
-    nationality: string;
-    dateOfBirth: string;
-    contractEndDate?: string;
+  squad: {
+    players: string[]; // Array of player IDs
+    staff: string[]; // Array of staff member IDs
   };
-  players: string[]; // Array of player IDs
-  staff?: {
-    position: string;
-    name: string;
-    nationality: string;
-  }[];
+  stats?: {
+    matchesPlayed: number;
+    wins: number;
+    draws: number;
+    losses: number;
+    goalsFor: number;
+    goalsAgainst: number;
+    points: number;
+  };
   achievements?: {
     title: string;
     year: number;
-    description?: string;
   }[];
   isActive: boolean;
-  league?: string;
-  division?: string;
-  season?: string;
+  createdAt: string;
+  updatedAt: string;
 }
