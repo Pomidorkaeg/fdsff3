@@ -28,43 +28,21 @@ export const useMatches = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    let mounted = true;
-
     const loadMatches = async () => {
       try {
-        setLoading(true);
-        setError(null);
-        
-        // Try to fetch from API first
         const data = await fetchMatches();
-        if (mounted) {
-          setMatches(data);
-          saveLocalMatches(data);
-        }
+        setMatches(data);
+        setError(null);
       } catch (err) {
-        console.error('Error loading matches from API:', err);
-        if (mounted) {
-          // If API fails, try to load from local storage
-          const localMatches = getLocalMatches();
-          if (localMatches.length > 0) {
-            setMatches(localMatches);
-            setError('Используются сохраненные данные (API недоступен)');
-          } else {
-            setError('Ошибка при загрузке матчей');
-          }
-        }
+        console.error('Error loading matches:', err);
+        setError('Ошибка при загрузке матчей');
+        setMatches([]);
       } finally {
-        if (mounted) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     };
 
     loadMatches();
-
-    return () => {
-      mounted = false;
-    };
   }, []);
 
   return { matches, loading, error };

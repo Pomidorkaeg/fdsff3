@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useMatches } from '@/hooks/useMatches';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, Loader2, RefreshCw } from 'lucide-react';
@@ -9,16 +9,6 @@ const MatchesCarousel: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [hasInitialized, setHasInitialized] = useState(false);
-
-  useEffect(() => {
-    if (!loading && !hasInitialized) {
-      setHasInitialized(true);
-      if (matches.length > 0) {
-        setCurrentIndex(0);
-      }
-    }
-  }, [loading, matches, hasInitialized]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
@@ -45,7 +35,7 @@ const MatchesCarousel: React.FC = () => {
     setTimeout(() => setIsAnimating(false), 500);
   };
 
-  if (loading && !hasInitialized) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-fc-green" />
@@ -128,28 +118,6 @@ const MatchesCarousel: React.FC = () => {
             <p className="font-medium">{currentMatch.competition}</p>
           </div>
         </div>
-        {matches.length > 1 && (
-          <div className="absolute bottom-0 left-0 right-0 flex justify-between p-4">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={prevMatch}
-              disabled={isAnimating}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              Назад
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={nextMatch}
-              disabled={isAnimating}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              Вперед
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   );

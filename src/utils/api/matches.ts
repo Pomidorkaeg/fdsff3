@@ -31,114 +31,72 @@ export const saveLocalMatches = (matches: Match[]): void => {
 
 export const fetchMatches = async (): Promise<Match[]> => {
   try {
-    // Пытаемся получить данные из API
     const response = await fetch(`${API_URL}/api/matches`, {
       headers: getAuthHeaders()
     });
     
-    if (response.ok) {
-      const apiMatches = await response.json();
-      // Если API вернул данные, обновляем локальное хранилище
-      if (apiMatches && apiMatches.length > 0) {
-        saveLocalMatches(apiMatches);
-        return apiMatches;
-      }
+    if (!response.ok) {
+      throw new Error('Failed to fetch matches');
     }
     
-    // Если API недоступен или вернул пустой список, используем локальные данные
-    const localMatches = getLocalMatches();
-    return localMatches;
+    const data = await response.json();
+    return data || [];
   } catch (error) {
-    console.log('Error fetching from API, using local storage:', error);
-    const localMatches = getLocalMatches();
-    return localMatches;
+    console.error('Error fetching matches:', error);
+    return [];
   }
 };
 
 export const addMatch = async (match: Match): Promise<Match> => {
-  const newMatch = { ...match, id: Date.now().toString() };
-  const localMatches = getLocalMatches();
-  
   try {
-    // Пытаемся сохранить в API
     const response = await fetch(`${API_URL}/api/matches`, {
       method: 'POST',
       headers: getAuthHeaders(),
-      body: JSON.stringify(newMatch),
+      body: JSON.stringify(match),
     });
     
-    if (response.ok) {
-      const savedMatch = await response.json();
-      // Обновляем локальное хранилище данными из API
-      localMatches.push(savedMatch);
-      saveLocalMatches(localMatches);
-      return savedMatch;
+    if (!response.ok) {
+      throw new Error('Failed to add match');
     }
+    
+    return await response.json();
   } catch (error) {
-    console.log('Error adding to API, using local storage:', error);
+    console.error('Error adding match:', error);
+    throw error;
   }
-  
-  // Если API недоступен, сохраняем только в локальное хранилище
-  localMatches.push(newMatch);
-  saveLocalMatches(localMatches);
-  return newMatch;
 };
 
 export const updateMatch = async (match: Match): Promise<Match> => {
-  const localMatches = getLocalMatches();
-  
   try {
-    // Пытаемся обновить в API
     const response = await fetch(`${API_URL}/api/matches/${match.id}`, {
       method: 'PUT',
       headers: getAuthHeaders(),
       body: JSON.stringify(match),
     });
     
-    if (response.ok) {
-      const updatedMatch = await response.json();
-      // Обновляем локальное хранилище данными из API
-      const index = localMatches.findIndex(m => m.id === match.id);
-      if (index !== -1) {
-        localMatches[index] = updatedMatch;
-        saveLocalMatches(localMatches);
-      }
-      return updatedMatch;
+    if (!response.ok) {
+      throw new Error('Failed to update match');
     }
+    
+    return await response.json();
   } catch (error) {
-    console.log('Error updating in API, using local storage:', error);
+    console.error('Error updating match:', error);
+    throw error;
   }
-  
-  // Если API недоступен, обновляем только в локальном хранилище
-  const index = localMatches.findIndex(m => m.id === match.id);
-  if (index !== -1) {
-    localMatches[index] = match;
-    saveLocalMatches(localMatches);
-  }
-  return match;
 };
 
 export const deleteMatch = async (matchId: string): Promise<void> => {
-  const localMatches = getLocalMatches();
-  
   try {
-    // Пытаемся удалить из API
     const response = await fetch(`${API_URL}/api/matches/${matchId}`, {
       method: 'DELETE',
       headers: getAuthHeaders(),
     });
     
-    if (response.ok) {
-      // Удаляем из локального хранилища
-      const filteredMatches = localMatches.filter(m => m.id !== matchId);
-      saveLocalMatches(filteredMatches);
-      return;
+    if (!response.ok) {
+      throw new Error('Failed to delete match');
     }
   } catch (error) {
-    console.log('Error deleting from API, using local storage:', error);
+    console.error('Error deleting match:', error);
+    throw error;
   }
-  
-  // Если API недоступен, удаляем только из локального хранилища
-  const filteredMatches = localMatches.filter(m => m.id !== matchId);
-  saveLocalMatches(filteredMatches);
 }; 
