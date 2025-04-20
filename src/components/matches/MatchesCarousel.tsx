@@ -12,6 +12,11 @@ const MatchesCarousel: React.FC = () => {
 
   const matches = data?.matches || [];
 
+  useEffect(() => {
+    // Reset index when matches change
+    setCurrentIndex(0);
+  }, [matches]);
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
@@ -25,14 +30,14 @@ const MatchesCarousel: React.FC = () => {
   };
 
   const nextMatch = () => {
-    if (isAnimating) return;
+    if (isAnimating || matches.length <= 1) return;
     setIsAnimating(true);
     setCurrentIndex((prevIndex) => (prevIndex + 1) % matches.length);
     setTimeout(() => setIsAnimating(false), 500);
   };
 
   const prevMatch = () => {
-    if (isAnimating) return;
+    if (isAnimating || matches.length <= 1) return;
     setIsAnimating(true);
     setCurrentIndex((prevIndex) => (prevIndex - 1 + matches.length) % matches.length);
     setTimeout(() => setIsAnimating(false), 500);
@@ -48,19 +53,35 @@ const MatchesCarousel: React.FC = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <div className="flex items-center text-red-500">
           <AlertCircle className="w-5 h-5 mr-2" />
           <span>{error}</span>
         </div>
+        <Button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="bg-fc-green hover:bg-fc-darkGreen text-white"
+        >
+          <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          Попробовать снова
+        </Button>
       </div>
     );
   }
 
   if (matches.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <p className="text-gray-500">Нет запланированных матчей</p>
+        <Button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          className="bg-fc-green hover:bg-fc-darkGreen text-white"
+        >
+          <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          Обновить
+        </Button>
       </div>
     );
   }
