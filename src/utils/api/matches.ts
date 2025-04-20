@@ -1,4 +1,4 @@
-import { Match } from '@/hooks/useMatches';
+import { Match } from '../types/match';
 
 const API_URL = process.env.REACT_APP_API_URL || 'https://api.fcgudauta.ru';
 const STORAGE_KEY = 'fc_matches';

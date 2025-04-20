@@ -11,14 +11,14 @@ const MatchesCarousel: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
-    // Reset index when matches change
-    setCurrentIndex(0);
-  }, [matches]);
+    if (!loading && matches.length > 0) {
+      setCurrentIndex(0);
+    }
+  }, [matches, loading]);
 
   const handleRefresh = () => {
     setIsRefreshing(true);
     try {
-      // Reload the page to refresh data
       window.location.reload();
     } catch (err) {
       toast.error('Ошибка при обновлении данных');

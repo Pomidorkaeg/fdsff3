@@ -5,12 +5,21 @@ import { fetchMatches } from '../utils/api/matches';
 const STORAGE_KEY = 'fc_matches';
 
 const getLocalMatches = (): Match[] => {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : [];
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.error('Error reading from localStorage:', error);
+    return [];
+  }
 };
 
 const saveLocalMatches = (matches: Match[]) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(matches));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(matches));
+  } catch (error) {
+    console.error('Error saving to localStorage:', error);
+  }
 };
 
 export const useMatches = () => {
@@ -19,30 +28,43 @@ export const useMatches = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let mounted = true;
+
     const loadMatches = async () => {
       try {
         setLoading(true);
+        setError(null);
+        
         // Try to fetch from API first
         const data = await fetchMatches();
-        setMatches(data);
-        saveLocalMatches(data); // Cache the data
-        setError(null);
+        if (mounted) {
+          setMatches(data);
+          saveLocalMatches(data);
+        }
       } catch (err) {
         console.error('Error loading matches from API:', err);
-        // If API fails, try to load from local storage
-        const localMatches = getLocalMatches();
-        if (localMatches.length > 0) {
-          setMatches(localMatches);
-          setError('Используются сохраненные данные (API недоступен)');
-        } else {
-          setError('Ошибка при загрузке матчей');
+        if (mounted) {
+          // If API fails, try to load from local storage
+          const localMatches = getLocalMatches();
+          if (localMatches.length > 0) {
+            setMatches(localMatches);
+            setError('Используются сохраненные данные (API недоступен)');
+          } else {
+            setError('Ошибка при загрузке матчей');
+          }
         }
       } finally {
-        setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
 
     loadMatches();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   return { matches, loading, error };
