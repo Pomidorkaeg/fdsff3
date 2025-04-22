@@ -15,7 +15,7 @@ import NewsEditor from '@/components/admin/news/NewsEditor';
 import { NewsItem, getAllNews, createNews, updateNews, deleteNews } from '@/utils/news/newsOperations';
 
 const NewsManagement = () => {
-  const [news, setNews] = useState<NewsItem[]>([]);
+  const [news, setNews] = useState<NewsItem[]>([]); 
   const [editMode, setEditMode] = useState(false);
   const [currentNews, setCurrentNews] = useState<NewsItem | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);

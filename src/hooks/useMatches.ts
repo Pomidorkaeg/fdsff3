@@ -36,11 +36,9 @@ export const useMatches = () => {
       } catch (err) {
         console.error('Error loading matches:', err);
         setError('Ошибка при загрузке матчей');
+        setMatches([]);
       } finally {
-        // Устанавливаем задержку в 500мс, чтобы избежать мерцания UI
-        setTimeout(() => {
-          setLoading(false);
-        }, 500);
+        setLoading(false);
       }
     };
 

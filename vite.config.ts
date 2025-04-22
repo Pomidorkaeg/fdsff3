@@ -10,11 +10,11 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base: '/fds/',
+  base: process.env.NODE_ENV === 'production' ? '/fds/' : '/',
   build: {
     outDir: "dist",
     assetsDir: "assets",
-    sourcemap: process.env.VITE_HIDE_SOURCE !== 'true',
+    sourcemap: false,
     minify: 'terser',
     terserOptions: {
       compress: {
