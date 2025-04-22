@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 
 // https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
   resolve: {
     alias: {
@@ -11,17 +11,14 @@ export default defineConfig({
     },
   },
   base: '/fds/',
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(mode)
+  },
   build: {
     outDir: "dist",
     assetsDir: "assets",
     sourcemap: false,
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: process.env.NODE_ENV === 'production',
-        drop_debugger: true
-      }
-    },
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: {
@@ -63,4 +60,4 @@ export default defineConfig({
     include: ['react', 'react-dom', 'react-router-dom'],
     exclude: ['@radix-ui/react-toast']
   }
-});
+}));

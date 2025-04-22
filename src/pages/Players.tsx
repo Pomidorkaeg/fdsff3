@@ -1,5 +1,5 @@
-import React from 'react';
-import PlayersList from '@/components/players/PlayersList';
+import * as React from 'react';
+import { PlayersList } from '@/components/players/PlayersList';
 
 const Players: React.FC = () => {
   return (

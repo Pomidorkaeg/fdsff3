@@ -18,29 +18,17 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap">
     
     <script type="text/javascript">
-      // Handle GitHub Pages SPA routing
-      (function() {
-        const l = window.location;
-        if (l.search[1] === '/') {
-          const decoded = l.search.slice(1).split('&')[0].replace(/~and~/g, '&');
+      // Single Page App - GitHub Pages redirect script
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) { 
+            return s.replace(/~and~/g, '&')
+          }).join('?');
           window.history.replaceState(null, null,
-            l.pathname.slice(0, -1) + decoded + l.hash
+              l.pathname.slice(0, -1) + decoded + l.hash
           );
         }
-      })();
-
-      // Register service worker
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', function() {
-          navigator.serviceWorker.register('/bds/sw.js', { scope: '/bds/' })
-            .then(function(registration) {
-              console.log('ServiceWorker registration successful');
-            })
-            .catch(function(err) {
-              console.log('ServiceWorker registration failed: ', err);
-            });
-        });
-      }
+      }(window.location))
     </script>
     
     <style>
@@ -118,6 +106,6 @@
         }
       }, 10000);
     </script>
-    <script type="module" src="/fds/src/main.tsx"></script>
+    <script type="module" src="./src/main.tsx"></script>
   </body>
 </html>
