@@ -24,7 +24,6 @@ export default defineConfig(({ mode }) => ({
         manualChunks: {
           vendor: ['react', 'react-dom', 'react-router-dom'],
           ui: ['@radix-ui/react-toast', '@radix-ui/react-tooltip', 'lucide-react'],
-          styles: ['tailwindcss']
         },
         assetFileNames: (assetInfo) => {
           if (!assetInfo.name) return 'assets/[name]-[hash][extname]';
