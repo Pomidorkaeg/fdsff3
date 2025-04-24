@@ -1,5 +1,5 @@
 import React from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import Layout from './components/Layout';
 import Home from './pages/Home';
@@ -10,6 +10,7 @@ import PlayersManagement from './pages/admin/PlayersManagement';
 import MatchesManagement from './pages/admin/MatchesManagement';
 import NewsManagement from './pages/admin/NewsManagement';
 import { AuthProvider } from './lib/auth-context';
+import { GitHubPagesRouter } from './components/GitHubPagesRouter';
 
 const About = () => (
   <div className="container mx-auto px-4 py-8">
@@ -24,18 +25,18 @@ const Admin = () => (
   <div className="container mx-auto px-4 py-8">
     <h1 className="text-3xl font-bold mb-6">Панель администратора</h1>
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      <a href="#/admin/players" className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+      <Link to="/admin/players" className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
         <h2 className="text-xl font-semibold mb-2">Управление игроками</h2>
         <p className="text-gray-600">Добавление, редактирование и удаление игроков команды</p>
-      </a>
-      <a href="#/admin/matches" className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+      </Link>
+      <Link to="/admin/matches" className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
         <h2 className="text-xl font-semibold mb-2">Управление матчами</h2>
         <p className="text-gray-600">Добавление, редактирование и удаление матчей</p>
-      </a>
-      <a href="#/admin/news" className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
+      </Link>
+      <Link to="/admin/news" className="p-6 bg-white rounded-lg shadow hover:shadow-lg transition-shadow">
         <h2 className="text-xl font-semibold mb-2">Управление новостями</h2>
         <p className="text-gray-600">Добавление, редактирование и удаление новостей</p>
-      </a>
+      </Link>
     </div>
   </div>
 );
@@ -43,7 +44,8 @@ const Admin = () => (
 function App() {
   return (
     <AuthProvider>
-      <Router>
+      <Router basename="/fdsff3">
+        <GitHubPagesRouter />
         <Toaster position="top-right" />
         <Layout>
           <Routes>

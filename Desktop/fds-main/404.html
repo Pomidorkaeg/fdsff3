@@ -4,11 +4,18 @@
     <meta charset="utf-8">
     <title>Redirecting...</title>
     <script>
-      sessionStorage.redirect = location.href;
+      const segments = window.location.pathname.split('/');
+      const repo = segments[1];
+      const path = '/' + segments.slice(2).join('/');
+      
+      // Store the path for later
+      sessionStorage.setItem('path', path);
+      
+      // Redirect to the root
+      window.location.href = '/' + repo;
     </script>
-    <meta http-equiv="refresh" content="0;URL='/'">
   </head>
   <body>
-    Redirecting to homepage...
+    Redirecting...
   </body>
 </html> 
