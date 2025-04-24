@@ -80,7 +80,7 @@ function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <Router>
+        <Router basename={process.env.NODE_ENV === 'production' ? '/fdsff3' : ''}>
           <Toaster position="top-right" />
           <Layout>
             <Routes>

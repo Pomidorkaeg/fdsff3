@@ -20,17 +20,21 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 16
+          cache: 'npm'
       
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       
       - name: Build
         run: npm run build
+        env:
+          NODE_ENV: production
       
       - name: Fix index.html
         run: |
           cd dist
           cp index.html 404.html
+          echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Redirecting...</title><script>window.location.href = "/fdsff3/";</script></head><body>Redirecting to main page...</body></html>' > index.html
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1

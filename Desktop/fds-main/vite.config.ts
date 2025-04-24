@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-  base: "",
+  base: mode === 'production' ? '/fdsff3/' : '/',
   define: {
     'process.env.NODE_ENV': JSON.stringify(mode)
   },
