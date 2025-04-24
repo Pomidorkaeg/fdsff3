@@ -22,10 +22,15 @@ jobs:
           node-version: 16
       
       - name: Install dependencies
-        run: npm install --no-package-lock --force
+        run: npm install
       
       - name: Build
         run: npm run build
+      
+      - name: Fix index.html
+        run: |
+          cd dist
+          cp index.html 404.html
       
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
