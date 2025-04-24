@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import Layout from './components/Layout';
 import Home from './pages/Home';
@@ -10,7 +10,6 @@ import PlayersManagement from './pages/admin/PlayersManagement';
 import MatchesManagement from './pages/admin/MatchesManagement';
 import NewsManagement from './pages/admin/NewsManagement';
 import { AuthProvider } from './lib/auth-context';
-import { GitHubPagesRouter } from './components/GitHubPagesRouter';
 
 const About = () => (
   <div className="container mx-auto px-4 py-8">
@@ -44,8 +43,7 @@ const Admin = () => (
 function App() {
   return (
     <AuthProvider>
-      <Router basename="/fdsff3">
-        <GitHubPagesRouter />
+      <Router>
         <Toaster position="top-right" />
         <Layout>
           <Routes>
