@@ -18,17 +18,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [admin, setAdmin] = useState<Admin | null>(null);
   const [sharedData, setSharedData] = useState<SharedAdminData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
-      if (isAdminAuthenticated()) {
-        setIsAuthenticated(true);
-        setAdmin(getCurrentAdmin());
-        try {
-          await syncData();
-        } catch (error) {
-          console.error('Error syncing admin data:', error);
+      try {
+        if (isAdminAuthenticated()) {
+          setIsAuthenticated(true);
+          setAdmin(getCurrentAdmin());
+          try {
+            await syncData();
+          } catch (error) {
+            console.error('Error syncing admin data:', error);
+          }
         }
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -37,14 +44,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     if (isAuthenticated) {
-      connectWebSocket((data) => {
-        if (data.type === 'sharedDataUpdate') {
-          setSharedData(data.data);
-        }
-      });
+      try {
+        connectWebSocket((data) => {
+          if (data.type === 'sharedDataUpdate') {
+            setSharedData(data.data);
+          }
+        });
+      } catch (error) {
+        console.error('Error connecting to WebSocket:', error);
+      }
 
       return () => {
-        disconnectWebSocket();
+        try {
+          disconnectWebSocket();
+        } catch (error) {
+          console.error('Error disconnecting from WebSocket:', error);
+        }
       };
     }
   }, [isAuthenticated]);
@@ -63,11 +78,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
-    logoutAdmin();
-    setIsAuthenticated(false);
-    setAdmin(null);
-    setSharedData(null);
-    disconnectWebSocket();
+    try {
+      logoutAdmin();
+      setIsAuthenticated(false);
+      setAdmin(null);
+      setSharedData(null);
+      disconnectWebSocket();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const syncData = async () => {
@@ -76,7 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setSharedData(data);
     } catch (error) {
       console.error('Sync error:', error);
-      throw error;
+      // Don't throw the error to prevent blocking the UI
     }
   };
 
@@ -87,9 +106,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await syncData();
     } catch (error) {
       console.error('Update error:', error);
-      throw error;
+      // Don't throw the error to prevent blocking the UI
     }
   };
+
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+    </div>;
+  }
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, admin, sharedData, login, logout, syncData, updateSharedData }}>
