@@ -1,0 +1,26 @@
+@model IEnumerable<Player>
+
+<h2>Player Management</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var player in Model)
+        {
+            <tr>
+                <td>@player.Name</td>
+                <td>
+                    <a href="@Url.Action("EditPlayer", new { id = player.Id })" class="btn btn-primary">Edit</a>
+                    <form asp-action="DeletePlayer" asp-route-id="@player.Id" method="post" style="display: inline;">
+                        <button type="submit" class="btn btn-danger" onclick="return confirm('Are you sure?')">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
