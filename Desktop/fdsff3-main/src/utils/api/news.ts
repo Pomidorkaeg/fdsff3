@@ -1,75 +1,68 @@
 import { News } from '../../types/news';
-import { getAuthHeaders } from './auth';
 
-const API_URL = process.env.REACT_APP_API_URL || 'https://api.fcgudauta.ru';
+const mockNews: News[] = [
+  {
+    id: '1',
+    title: 'ФК Сибирь одержал победу над Спартаком в матче 3 лиги',
+    content: 'Полный текст новости о победе над Спартаком...',
+    author: 'Админ',
+    publishDate: '2024-05-15',
+    image: 'https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?q=80&w=2574&auto=format&fit=crop',
+    category: 'match',
+    tags: ['матч', 'победа'],
+    isPublished: true,
+    views: 1245,
+    likes: 100,
+    comments: [],
+    relatedMatches: [],
+    relatedPlayers: [],
+  },
+  {
+    id: '2',
+    title: 'Новый тренер присоединился к команде перед важным матчем',
+    content: 'Полный текст новости о новом тренере...',
+    author: 'Админ',
+    publishDate: '2024-05-10',
+    image: 'https://images.unsplash.com/photo-1518164147695-36c13dd568f5?q=80&w=2670&auto=format&fit=crop',
+    category: 'club',
+    tags: ['тренер', 'команда'],
+    isPublished: true,
+    views: 987,
+    likes: 50,
+    comments: [],
+    relatedMatches: [],
+    relatedPlayers: [],
+  }
+];
 
 export const fetchNews = async (): Promise<News[]> => {
-  try {
-    const response = await fetch(`${API_URL}/news`, {
-      headers: getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch news');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error fetching news:', error);
-    throw error;
-  }
+  return [...mockNews];
 };
 
 export const addNews = async (news: Omit<News, 'id' | 'createdAt' | 'updatedAt'>): Promise<News> => {
-  try {
-    const response = await fetch(`${API_URL}/news`, {
-      method: 'POST',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(news),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to add news');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error adding news:', error);
-    throw error;
-  }
+  const newNews: News = {
+    ...news,
+    id: `news${Date.now()}`,
+    isPublished: true,
+    publishDate: new Date().toISOString(),
+    views: 0,
+    likes: 0,
+    comments: [],
+    relatedMatches: [],
+    relatedPlayers: [],
+  } as News;
+  mockNews.push(newNews);
+  return newNews;
 };
 
 export const updateNews = async (id: string, news: Partial<News>): Promise<News> => {
-  try {
-    const response = await fetch(`${API_URL}/news/${id}`, {
-      method: 'PUT',
-      headers: getAuthHeaders(),
-      body: JSON.stringify(news),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to update news');
-    }
-
-    return await response.json();
-  } catch (error) {
-    console.error('Error updating news:', error);
-    throw error;
-  }
+  const idx = mockNews.findIndex(n => n.id === id);
+  if (idx === -1) throw new Error('News not found');
+  mockNews[idx] = { ...mockNews[idx], ...news };
+  return mockNews[idx];
 };
 
 export const deleteNews = async (id: string): Promise<void> => {
-  try {
-    const response = await fetch(`${API_URL}/news/${id}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to delete news');
-    }
-  } catch (error) {
-    console.error('Error deleting news:', error);
-    throw error;
-  }
+  const idx = mockNews.findIndex(n => n.id === id);
+  if (idx !== -1) mockNews.splice(idx, 1);
 }; 
